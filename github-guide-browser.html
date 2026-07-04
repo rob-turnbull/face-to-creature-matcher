@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Git & GitHub Visual Learning Guide</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
+      padding: 24px 32px;
+      color: #f9fafb;
+    }
+    header h1 {
+      margin: 0 0 8px 0;
+      font-size: 2rem;
+    }
+    header p {
+      margin: 0;
+      max-width: 800px;
+    }
+    main {
+      display: flex;
+      min-height: 100vh;
+    }
+    nav {
+      width: 260px;
+      background: #020617;
+      border-right: 1px solid #1f2937;
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    nav h2 {
+      font-size: 1rem;
+      margin-top: 0;
+      color: #9ca3af;
+    }
+    nav a {
+      display: block;
+      color: #e5e7eb;
+      text-decoration: none;
+      padding: 6px 4px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    nav a:hover {
+      background: #1f2937;
+    }
+    section {
+      padding: 24px 32px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    section h2 {
+      margin-top: 0;
+      font-size: 1.6rem;
+      color: #f9fafb;
+    }
+    section h3 {
+      font-size: 1.2rem;
+      margin-top: 24px;
+      color: #e5e7eb;
+    }
+    .card {
+      background: #020617;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 16px 0;
+      border: 1px solid #1f2937;
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    .key-takeaways {
+      border-left: 4px solid #22c55e;
+      padding-left: 12px;
+      margin-top: 12px;
+    }
+    .key-takeaways h4 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      color: #bbf7d0;
+    }
+    .key-takeaways ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 0.95rem;
+    }
+    code, pre {
+      font-family: "JetBrains Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 0.9rem;
+    }
+    pre {
+      background: #020617;
+      border-radius: 6px;
+      padding: 12px 14px;
+      border: 1px solid #1f2937;
+      overflow-x: auto;
+    }
+    .inline-code {
+      background: #111827;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .diagram {
+      margin: 16px 0;
+      padding: 12px;
+      background: #020617;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+    }
+    .diagram-title {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: #9ca3af;
+    }
+    svg {
+      width: 100%;
+      max-width: 640px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .step-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+    }
+    .step-list li {
+      margin-bottom: 4px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #1f2937;
+      font-size: 0.8rem;
+      margin-right: 4px;
+    }
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      main {
+        flex-direction: column;
+      }
+      nav {
+        width: 100%;
+        height: auto;
+        position: static;
+      }
+      section {
+        padding: 16px;
+      }
+      .two-column {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Git & GitHub Visual Learning Guide</h1>
+  <p>
+    A practical, visual, step‑by‑step guide to Git, GitHub, GitHub Desktop, and GitHub CLI—
+    designed to get you to experienced‑user level with clear workflows, diagrams, and key takeaways.
+  </p>
+</header>
+
+<main>
+  <nav>
+    <h2>Contents</h2>
+    <a href="#mental-model">1. Git & GitHub mental model</a>
+    <a href="#git-basics">2. Git basics (local)</a>
+    <a href="#github-core">3. GitHub core concepts</a>
+    <a href="#desktop">4. GitHub Desktop workflows</a>
+    <a href="#cli">5. GitHub CLI workflows</a>
+    <a href="#branching">6. Branching & merging</a>
+    <a href="#rebasing">7. Rebasing & history</a>
+    <a href="#collaboration">8. Collaboration & pull requests</a>
+    <a href="#advanced">9. Advanced GitHub features</a>
+    <a href="#troubleshooting">10. Troubleshooting & best practices</a>
+  </nav>
+
+  <div style="flex: 1;">
+    <!-- 1. Mental model -->
+    <section id="mental-model">
+      <h2>1. Git & GitHub mental model</h2>
+
+      <div class="card">
+        <h3>Concept: Git vs GitHub</h3>
+        <p>
+          Think of <span class="inline-code">Git</span> as the engine that tracks changes to files,
+          and <span class="inline-code">GitHub</span> as a cloud platform that hosts Git repositories
+          and adds collaboration features (issues, pull requests, actions, etc.).
+        </p>
+
+        <div class="diagram">
+          <div class="diagram-title">Diagram: Local Git vs Remote GitHub</div>
+          <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background -->
+            <rect x="10" y="10" width="580" height="160" rx="12" fill="#020617" stroke="#1f2937" />
+            <!-- Local box -->
+            <rect x="30" y="40" width="220" height="110" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="140" y="60" text-anchor="middle" fill="#e5e7eb" font-size="14" font-family="system-ui">
+              Local machine (Git)
+            </text>
+            <circle cx="90" cy="100" r="22" fill="#0ea5e9" />
+            <text x="90" y="104" text-anchor="middle" fill="#0b1120" font-size="12" font-family="system-ui">
+              Repo
+            </text>
+            <text x="170" y="96" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              Working
+            </text>
+            <text x="170" y="112" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              directory
+            </text>
+
+            <!-- Remote box -->
+            <rect x="350" y="40" width="220" height="110" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="460" y="60" text-anchor="middle" fill="#e5e7eb" font-size="14" font-family="system-ui">
+              GitHub (remote)
+            </text>
+            <circle cx="420" cy="100" r="22" fill="#22c55e" />
+            <text x="420" y="104" text-anchor="middle" fill="#052e16" font-size="12" font-family="system-ui">
+              Repo
+            </text>
+            <text x="500" y="96" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              Issues
+            </text>
+            <text x="500" y="112" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              PRs, Actions
+            </text>
+
+            <!-- Arrows -->
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#e5e7eb" />
+              </marker>
+            </defs>
+            <line x1="250" y1="90" x2="350" y2="90" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow)" />
+            <line x1="350" y1="120" x2="250" y2="120" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow)" />
+            <text x="300" y="80" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              git push
+            </text>
+            <text x="300" y="132" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              git pull / fetch
+            </text>
+          </svg>
+        </div>
+
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Git = version control engine on your machine.</li>
+            <li>GitHub = remote hosting + collaboration on top of Git.</li>
+            <li>Most workflows: edit locally → commit → push to GitHub → collaborate.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Git basics -->
+    <section id="git-basics">
+      <h2>2. Git basics (local)</h2>
+
+      <div class="two-column">
+        <div class="card">
+          <h3>2.1 Core Git concepts</h3>
+          <p>
+            At minimum, an experienced user understands:
+          </p>
+          <ul>
+            <li><span class="pill">Repository</span> A folder tracked by Git.</li>
+            <li><span class="pill">Commit</span> A snapshot of changes with a message.</li>
+            <li><span class="pill">Branch</span> A movable pointer to a line of commits.</li>
+            <li><span class="pill">Stage</span> The “ready to commit” area.</li>
+          </ul>
+
+          <div class="diagram">
+            <div class="diagram-title">Diagram: Working directory → Staging → Commit</div>
+            <svg viewBox="0 0 600 140" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="10" width="580" height="120" rx="12" fill="#020617" stroke="#1f2937" />
+              <!-- Working directory -->
+              <rect x="30" y="40" width="150" height="70" rx="8" fill="#1f2937" stroke="#374151" />
+              <text x="105" y="60" text-anchor="middle" fill="#e5e7eb" font-size="13" font-family="system-ui">
+                Working dir
+              </text>
+              <text x="105" y="80" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+                edited files
+              </text>
+
+              <!-- Staging -->
+              <rect x="230" y="40" width="150" height="70" rx="8" fill="#1f2937" stroke="#374151" />
+              <text x="305" y="60" text-anchor="middle" fill="#e5e7eb" font-size="13" font-family="system-ui">
+                Staging
+              </text>
+              <text x="305" y="80" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+                git add
+              </text>
+
+              <!-- Commit -->
+              <rect x="430" y="40" width="150" height="70" rx="8" fill="#1f2937" stroke="#374151" />
+              <text x="505" y="60" text-anchor="middle" fill="#e5e7eb" font-size="13" font-family="system-ui">
+                Commit
+              </text>
+              <text x="505" y="80" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+                git commit
+              </text>
+
+              <!-- Arrows -->
+              <defs>
+                <marker id="arrow2" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#e5e7eb" />
+                </marker>
+              </defs>
+              <line x1="180" y1="75" x2="230" y2="75" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow2)" />
+              <line x1="380" y1="75" x2="430" y2="75" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow2)" />
+              <text x="205" y="65" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+                git add
+              </text>
+              <text x="405" y="65" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+                git commit
+              </text>
+            </svg>
+          </div>
+
+          <div class="key-takeaways">
+            <h4>Key takeaways</h4>
+            <ul>
+              <li>Always think in terms of: edit → stage → commit.</li>
+              <li>Commits are your history; branches are paths through that history.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>2.2 Step‑by‑step: Creating a local repo</h3>
+          <p>From scratch, using Git on the command line:</p>
+          <ol class="step-list">
+            <li><strong>Initialize repo</strong>  
+              <pre><code>mkdir my-project
+cd my-project
+git init</code></pre>
+            </li>
+            <li><strong>Add a file</strong>  
+              <pre><code>echo "# My Project" &gt; README.md</code></pre>
+            </li>
+            <li><strong>Stage changes</strong>  
+              <pre><code>git add README.md</code></pre>
+            </li>
+            <li><strong>Commit</strong>  
+              <pre><code>git commit -m "Initial commit"</code></pre>
+            </li>
+          </ol>
+          <div class="key-takeaways">
+            <h4>Key takeaways</h4>
+            <ul>
+              <li><span class="inline-code">git init</span> turns a folder into a Git repository.</li>
+              <li>Every commit should have a clear, meaningful message.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. GitHub core -->
+    <section id="github-core">
+      <h2>3. GitHub core concepts</h2>
+
+      <div class="card">
+        <h3>3.1 Repos, forks, and clones</h3>
+        <p>
+          On GitHub, a repository is a hosted Git project. You can:
+        </p>
+        <ul>
+          <li><strong>Create</strong> a new repo on GitHub.</li>
+          <li><strong>Clone</strong> it to your machine (<span class="inline-code">git clone</span>).</li>
+          <li><strong>Fork</strong> someone else’s repo to your account for independent work.</li>
+        </ul>
+
+        <div class="diagram">
+          <div class="diagram-title">Diagram: GitHub repo → local clone → fork</div>
+          <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="580" height="160" rx="12" fill="#020617" stroke="#1f2937" />
+            <!-- Central GitHub repo -->
+            <circle cx="300" cy="60" r="26" fill="#0ea5e9" />
+            <text x="300" y="64" text-anchor="middle" fill="#0b1120" font-size="12" font-family="system-ui">
+              Origin
+            </text>
+            <text x="300" y="90" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              github.com/org/repo
+            </text>
+
+            <!-- Local clone -->
+            <rect x="80" y="100" width="160" height="50" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="160" y="120" text-anchor="middle" fill="#e5e7eb" font-size="12" font-family="system-ui">
+              Local clone
+            </text>
+            <text x="160" y="136" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              git clone
+            </text>
+
+            <!-- Fork -->
+            <rect x="360" y="100" width="160" height="50" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="440" y="120" text-anchor="middle" fill="#e5e7eb" font-size="12" font-family="system-ui">
+              Fork (your account)
+            </text>
+            <text x="440" y="136" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              github.com/you/repo
+            </text>
+
+            <!-- Arrows -->
+            <defs>
+              <marker id="arrow3" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#e5e7eb" />
+              </marker>
+            </defs>
+            <line x1="274" y1="80" x2="200" y2="100" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow3)" />
+            <line x1="326" y1="80" x2="400" y2="100" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow3)" />
+            <text x="230" y="92" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              git clone
+            </text>
+            <text x="370" y="92" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              GitHub fork
+            </text>
+          </svg>
+        </div>
+
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Clone = copy repo to your machine.</li>
+            <li>Fork = copy repo to your GitHub account.</li>
+            <li>Origin usually refers to the main remote repo you push to.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>3.2 Step‑by‑step: Creating a repo on GitHub and cloning it</h3>
+        <ol class="step-list">
+          <li><strong>Create repo on GitHub</strong>  
+            <ul>
+              <li>Go to GitHub → click <strong>New</strong> repository.</li>
+              <li>Set name (e.g., <span class="inline-code">my-project</span>), choose public/private.</li>
+              <li>Optionally add README and .gitignore.</li>
+            </ul>
+          </li>
+          <li><strong>Clone to your machine</strong>  
+            <pre><code>git clone https://github.com/&lt;your-username&gt;/my-project.git
+cd my-project</code></pre>
+          </li>
+          <li><strong>Start working</strong>  
+            <ul>
+              <li>Edit files.</li>
+              <li><span class="inline-code">git add</span> → <span class="inline-code">git commit</span> → <span class="inline-code">git push</span>.</li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 4. GitHub Desktop -->
+    <section id="desktop">
+      <h2>4. GitHub Desktop workflows</h2>
+
+      <div class="card">
+        <h3>4.1 Why GitHub Desktop?</h3>
+        <p>
+          GitHub Desktop gives you a visual interface for Git operations:
+          staging, committing, branching, and syncing with GitHub—without typing commands.
+        </p>
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Same Git concepts, but with buttons and panels.</li>
+            <li>Great for visualizing changes and branches.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>4.2 Step‑by‑step: Cloning a repo with GitHub Desktop</h3>
+        <ol class="step-list">
+          <li><strong>Open GitHub Desktop</strong> and sign in to GitHub.</li>
+          <li><strong>File → Clone repository</strong>  
+            <ul>
+              <li>Select a repo from your GitHub account or paste a URL.</li>
+              <li>Choose local path.</li>
+            </ul>
+          </li>
+          <li><strong>View changes</strong>  
+            <ul>
+              <li>Edit files in your editor.</li>
+              <li>Return to GitHub Desktop → see changes in the <strong>Changes</strong> tab.</li>
+            </ul>
+          </li>
+          <li><strong>Commit & push</strong>  
+            <ul>
+              <li>Enter a commit summary and description.</li>
+              <li>Click <strong>Commit to &lt;branch&gt;</strong>.</li>
+              <li>Click <strong>Push origin</strong> to send changes to GitHub.</li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>4.3 Visual branching in GitHub Desktop</h3>
+        <ol class="step-list">
+          <li>Click the <strong>Current branch</strong> dropdown.</li>
+          <li>Select <strong>New branch</strong>, name it (e.g., <span class="inline-code">feature/login</span>).</li>
+          <li>Commit changes on that branch.</li>
+          <li>Push the branch to GitHub.</li>
+        </ol>
+    </section>
+
+    <!-- 5. GitHub CLI -->
+    <section id="cli">
+      <h2>5. GitHub CLI workflows</h2>
+
+      <div class="card">
+        <h3>5.1 What is GitHub CLI?</h3>
+        <p>
+          GitHub CLI (<span class="inline-code">gh</span>) lets you interact with GitHub from the terminal:
+          create repos, issues, pull requests, and more—without leaving your shell.
+        </p>
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li><span class="inline-code">git</span> = version control.</li>
+            <li><span class="inline-code">gh</span> = GitHub API and workflows.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>5.2 Step‑by‑step: Creating a repo with GitHub CLI</h3>
+        <ol class="step-list">
+          <li><strong>Install and authenticate</strong>  
+            <pre><code>gh auth login</code></pre>
+          </li>
+          <li><strong>Create a repo</strong>  
+            <pre><code>gh repo create my-project --public --source=. --remote=origin --push</code></pre>
+          </li>
+          <li><strong>Open in browser</strong>  
+            <pre><code>gh repo view --web</code></pre>
+          </li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3>5.3 Step‑by‑step: Creating a pull request with GitHub CLI</h3>
+        <ol class="step-list">
+          <li>Ensure your branch is pushed:
+            <pre><code>git push -u origin feature/login</code></pre>
+          </li>
+          <li>Create PR:
+            <pre><code>gh pr create --base main --head feature/login --title "Add login" --body "Implements login flow."</code></pre>
+          </li>
+          <li>Open PR in browser:
+            <pre><code>gh pr view --web</code></pre>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 6. Branching & merging -->
+    <section id="branching">
+      <h2>6. Branching & merging</h2>
+
+      <div class="card">
+        <h3>6.1 Visual: Branching model</h3>
+        <div class="diagram">
+          <div class="diagram-title">Diagram: main branch with feature branches</div>
+          <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="580" height="180" rx="12" fill="#020617" stroke="#1f2937" />
+            <!-- Main line -->
+            <line x1="60" y1="100" x2="540" y2="100" stroke="#e5e7eb" stroke-width="2" />
+            <!-- Main commits -->
+            <circle cx="100" cy="100" r="8" fill="#0ea5e9" />
+            <circle cx="200" cy="100" r="8" fill="#0ea5e9" />
+            <circle cx="300" cy="100" r="8" fill="#0ea5e9" />
+            <circle cx="400" cy="100" r="8" fill="#0ea5e9" />
+            <circle cx="500" cy="100" r="8" fill="#0ea5e9" />
+            <text x="300" y="80" text-anchor="middle" fill="#e5e7eb" font-size="13" font-family="system-ui">
+              main
+            </text>
+
+            <!-- Feature branch 1 -->
+            <line x1="200" y1="100" x2="260" y2="60" stroke="#22c55e" stroke-width="2" />
+            <circle cx="260" cy="60" r="8" fill="#22c55e" />
+            <circle cx="320" cy="60" r="8" fill="#22c55e" />
+            <line x1="320" y1="60" x2="400" y2="100" stroke="#22c55e" stroke-width="2" />
+            <text x="300" y="48" text-anchor="middle" fill="#bbf7d0" font-size="11" font-family="system-ui">
+              feature/login
+            </text>
+
+            <!-- Feature branch 2 -->
+            <line x1="300" y1="100" x2="360" y2="140" stroke="#f97316" stroke-width="2" />
+            <circle cx="360" cy="140" r="8" fill="#f97316" />
+            <circle cx="420" cy="140" r="8" fill="#f97316" />
+            <line x1="420" y1="140" x2="500" y2="100" stroke="#f97316" stroke-width="2" />
+            <text x="390" y="156" text-anchor="middle" fill="#fed7aa" font-size="11" font-family="system-ui">
+              feature/profile
+            </text>
+          </svg>
+        </div>
+
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Each branch is a line of commits.</li>
+            <li>Merging brings changes from one branch into another.</li>
+            <li>Feature branches keep work isolated until ready.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>6.2 Step‑by‑step: Creating and merging a branch (Git CLI)</h3>
+        <ol class="step-list">
+          <li><strong>Create and switch to branch</strong>  
+            <pre><code>git checkout -b feature/login</code></pre>
+          </li>
+          <li><strong>Work and commit</strong>  
+            <pre><code># edit files
+git add .
+git commit -m "Implement login UI"</code></pre>
+          </li>
+          <li><strong>Switch back to main</strong>  
+            <pre><code>git checkout main</code></pre>
+          </li>
+          <li><strong>Merge branch</strong>  
+            <pre><code>git merge feature/login</code></pre>
+          </li>
+          <li><strong>Push updated main</strong>  
+            <pre><code>git push origin main</code></pre>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 7. Rebasing -->
+    <section id="rebasing">
+      <h2>7. Rebasing & history</h2>
+
+      <div class="card">
+        <h3>7.1 Visual: Merge vs rebase</h3>
+        <div class="diagram">
+          <div class="diagram-title">Diagram: Merge (history preserved) vs Rebase (history rewritten)</div>
+          <svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="580" height="200" rx="12" fill="#020617" stroke="#1f2937" />
+            <!-- Merge section -->
+            <text x="120" y="40" text-anchor="middle" fill="#e5e7eb" font-size="13" font-family="system-ui">
+              Merge
+            </text>
+            <line x1="40" y1="80" x2="200" y2="80" stroke="#e5e7eb" stroke-width="2" />
+            <circle cx="80" cy="80" r="7" fill="#0ea5e9" />
+            <circle cx="120" cy="80" r="7" fill="#0ea5e9" />
+            <circle cx="160" cy="80" r="7" fill="#0ea5e9" />
+            <text x="120" y="68" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              main
+            </text>
+
+            <line x1="80" y1="80" x2="140" y2="120" stroke="#22c55e" stroke-width="2" />
+            <circle cx="140" cy="120" r="7" fill="#22c55e" />
+            <circle cx="180" cy="120" r="7" fill="#22c55e" />
+            <text x="140" y="136" text-anchor="middle" fill="#bbf7d0" font-size="11" font-family="system-ui">
+              feature
+            </text>
+
+            <line x1="180" y1="120" x2="200" y2="80" stroke="#22c55e" stroke-width="2" />
+
+            <!-- Rebase section -->
+            <text x="420" y="40" text-anchor="middle" fill="#e5e7eb" font-size="13" font-family="system-ui">
+              Rebase
+            </text>
+            <line x1="340" y1="80" x2="500" y2="80" stroke="#e5e7eb" stroke-width="2" />
+            <circle cx="380" cy="80" r="7" fill="#0ea5e9" />
+            <circle cx="420" cy="80" r="7" fill="#0ea5e9" />
+            <circle cx="460" cy="80" r="7" fill="#0ea5e9" />
+            <text x="420" y="68" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              main
+            </text>
+
+            <line x1="380" y1="80" x2="380" y2="120" stroke="#22c55e" stroke-width="2" stroke-dasharray="4 3" />
+            <circle cx="380" cy="120" r="7" fill="#22c55e" />
+            <circle cx="420" cy="120" r="7" fill="#22c55e" />
+            <circle cx="460" cy="120" r="7" fill="#22c55e" />
+            <text x="420" y="136" text-anchor="middle" fill="#bbf7d0" font-size="11" font-family="system-ui">
+              feature (rebased)
+            </text>
+          </svg>
+        </div>
+
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Merge keeps history as‑is; rebase rewrites feature branch history.</li>
+            <li>Use rebase to keep a clean, linear history—especially before merging.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>7.2 Step‑by‑step: Rebasing a feature branch onto main</h3>
+        <ol class="step-list">
+          <li>Update <span class="inline-code">main</span>:
+            <pre><code>git checkout main
+git pull origin main</code></pre>
+          </li>
+          <li>Switch to feature branch:
+            <pre><code>git checkout feature/login</code></pre>
+          </li>
+          <li>Rebase onto main:
+            <pre><code>git rebase main</code></pre>
+          </li>
+          <li>Resolve conflicts if needed, then:
+            <pre><code>git add &lt;files&gt;
+git rebase --continue</code></pre>
+          </li>
+          <li>Force‑push updated branch (history changed):
+            <pre><code>git push --force-with-lease origin feature/login</code></pre>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 8. Collaboration -->
+    <section id="collaboration">
+      <h2>8. Collaboration & pull requests</h2>
+
+      <div class="card">
+        <h3>8.1 Visual: Pull request flow</h3>
+        <div class="diagram">
+          <div class="diagram-title">Diagram: Feature branch → Pull request → Review → Merge</div>
+          <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="580" height="180" rx="12" fill="#020617" stroke="#1f2937" />
+            <!-- Steps -->
+            <rect x="40" y="60" width="120" height="60" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="100" y="85" text-anchor="middle" fill="#e5e7eb" font-size="12" font-family="system-ui">
+              Feature branch
+            </text>
+
+            <rect x="200" y="60" width="120" height="60" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="260" y="80" text-anchor="middle" fill="#e5e7eb" font-size="12" font-family="system-ui">
+              Pull request
+            </text>
+            <text x="260" y="96" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              description, diff
+            </text>
+
+            <rect x="360" y="60" width="120" height="60" rx="8" fill="#1f2937" stroke="#374151" />
+            <text x="420" y="80" text-anchor="middle" fill="#e5e7eb" font-size="12" font-family="system-ui">
+              Review
+            </text>
+            <text x="420" y="96" text-anchor="middle" fill="#9ca3af" font-size="11" font-family="system-ui">
+              comments, checks
+            </text>
+
+            <rect x="520" y="60" width="60" height="60" rx="8" fill="#22c55e" stroke="#16a34a" />
+            <text x="550" y="90" text-anchor="middle" fill="#052e16" font-size="12" font-family="system-ui">
+              Merge
+            </text>
+
+            <!-- Arrows -->
+            <defs>
+              <marker id="arrow4" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#e5e7eb" />
+              </marker>
+            </defs>
+            <line x1="160" y1="90" x2="200" y2="90" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow4)" />
+            <line x1="320" y1="90" x2="360" y2="90" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow4)" />
+            <line x1="480" y1="90" x2="520" y2="90" stroke="#e5e7eb" stroke-width="2" marker-end="url(#arrow4)" />
+          </svg>
+        </div>
+
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Pull requests are the core collaboration unit on GitHub.</li>
+            <li>They bundle changes, discussion, and automated checks.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>8.2 Step‑by‑step: Creating a pull request (GitHub web)</h3>
+        <ol class="step-list">
+          <li>Push your feature branch:
+            <pre><code>git push -u origin feature/login</code></pre>
+          </li>
+          <li>Go to GitHub → your repo → <strong>Compare &amp; pull request</strong>.</li>
+          <li>Set base branch (e.g., <span class="inline-code">main</span>) and compare branch (<span class="inline-code">feature/login</span>).</li>
+          <li>Write a clear title and description (what, why, how).</li>
+          <li>Submit PR and respond to review comments.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 9. Advanced GitHub -->
+    <section id="advanced">
+      <h2>9. Advanced GitHub features</h2>
+
+      <div class="card">
+        <h3>9.1 Issues & project management</h3>
+        <ul>
+          <li><strong>Issues</strong> track bugs, tasks, and feature requests.</li>
+          <li><strong>Labels</strong> categorize issues (bug, enhancement, etc.).</li>
+          <li><strong>Projects</strong> provide boards and planning views.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>9.2 GitHub Actions (CI/CD)</h3>
+        <p>
+          GitHub Actions run workflows (tests, builds, deployments) on events like pushes and pull requests.
+        </p>
+        <pre><code># .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm test</code></pre>
+        <div class="key-takeaways">
+          <h4>Key takeaways</h4>
+          <ul>
+            <li>Actions automate testing and deployment.</li>
+            <li>Workflows are defined as YAML files in <span class="inline-code">.github/workflows</span>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Troubleshooting & best practices -->
+    <section id="troubleshooting">
+      <h2>10. Troubleshooting & best practices</h2>
+
+      <div class="card">
+        <h3>10.1 Common issues</h3>
+        <ul>
+          <li><strong>“Detached HEAD”</strong>  
+            You checked out a specific commit instead of a branch.  
+            Fix: <pre><code>git checkout main</code></pre>
+          </li>
+          <li><strong>Merge conflicts</strong>  
+            Git can’t auto‑merge changes in the same lines.  
+            Fix: edit conflicting files, then:
+            <pre><code>git add &lt;files&gt;
+git commit</code></pre>
+          </li>
+          <li><strong>Accidental commits</strong>  
+            Use <span class="inline-code">git reset</span> or <span class="inline-code">git revert</span> depending on whether history is shared.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>10.2 Experienced‑user habits</h3>
+        <ul>
+          <li>Use feature branches for every non‑trivial change.</li>
+          <li>Write descriptive commit messages (“Fix login redirect bug”).</li>
+          <li>Pull or fetch before starting new work to avoid conflicts.</li>
+          <li>Use PRs for review, even in solo projects, to keep history structured.</li>
+        </ul>
+      </div>
+
+      <div class="key-takeaways">
+        <h4>Final key takeaways</h4>
+        <ul>
+          <li>Git = local version control; GitHub = remote collaboration platform.</li>
+          <li>GitHub Desktop = visual Git; GitHub CLI = terminal GitHub workflows.</li>
+          <li>Branches, commits, and pull requests are the core building blocks of experienced GitHub usage.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

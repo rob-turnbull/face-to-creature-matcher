@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Face-to-Creature — Scorer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --surface: #161616; --border: #242424; --border2: #1e1e1e;
+      --muted: #444; --dim: #666; --text: #d8d8d8; --accent: #7effd4;
+      --accent2: #f0c27f; --error: #ff6b6b;
+    }
+    body { font-family: "SF Mono","Fira Code","Cascadia Code",monospace; background:var(--bg); color:var(--text); min-height:100vh; padding:32px; }
+    header { display:flex; align-items:baseline; gap:16px; margin-bottom:28px; }
+    h1 { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+    h1 span { color:var(--accent); }
+    .step-tag { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border:1px solid var(--border); padding:2px 8px; border-radius:3px; }
+    .layout { display:grid; grid-template-columns:380px 1fr; gap:20px; max-width:1100px; }
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:20px; }
+    .panel-title { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
+    label[for="api-key"] { display:block; font-size:11px; color:var(--dim); margin-bottom:6px; }
+    input[type="password"], textarea { width:100%; background:#111; border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:inherit; font-size:11px; padding:10px 12px; outline:none; transition:border-color .15s; resize:vertical; }
+    input[type="password"]:focus, textarea:focus { border-color:var(--accent); }
+    textarea { min-height:220px; margin-top:14px; line-height:1.5; }
+    textarea::placeholder { color:var(--muted); }
+    .input-label { font-size:11px; color:var(--dim); margin-top:14px; margin-bottom:6px; display:block; }
+    .hint { font-size:10px; color:var(--muted); margin-top:6px; line-height:1.5; }
+    .hint a { color:var(--accent); text-decoration:none; }
+    #score-btn { width:100%; margin-top:16px; background:none; border:1px solid var(--accent); color:var(--accent); font-family:inherit; font-size:12px; letter-spacing:.1em; text-transform:uppercase; padding:11px; border-radius:5px; cursor:pointer; transition:background .15s, color .15s; }
+    #score-btn:hover:not(:disabled) { background:var(--accent); color:#0d0d0d; }
+    #score-btn:disabled { opacity:.35; cursor:not-allowed; }
+    .status { font-size:11px; color:var(--muted); margin-top:10px; min-height:16px; }
+    .status.running { color:var(--accent); }
+    .status.error   { color:var(--error); }
+    .status.done    { color:var(--accent); }
+    #results-placeholder { color:var(--muted); font-size:12px; text-align:center; padding:60px 0; }
+    .top-match { border:1px solid var(--accent); border-radius:7px; padding:20px; margin-bottom:20px; }
+    .match-rank { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+    .match-name { font-size:22px; color:var(--accent); font-weight:600; letter-spacing:.02em; margin-bottom:4px; }
+    .match-species { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:16px; }
+    .score-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .score-label { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); width:90px; flex-shrink:0; }
+    .score-bar-wrap { flex:1; height:4px; background:var(--border); border-radius:2px; }
+    .score-bar { height:100%; background:var(--accent); border-radius:2px; transition:width .6s ease; }
+    .score-num { font-size:13px; color:var(--accent); width:42px; text-align:right; flex-shrink:0; }
+    .rationale { font-size:12px; color:var(--text); line-height:1.7; border-top:1px solid var(--border2); padding-top:14px; margin-top:4px; }
+    .drivers { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; }
+    .driver-tag { font-size:10px; letter-spacing:.06em; padding:3px 8px; border-radius:3px; border:1px solid var(--border); color:var(--dim); }
+    .driver-tag.match { border-color:var(--accent); color:var(--accent); }
+    .driver-tag.diff  { border-color:#444; color:var(--muted); }
+    .runners-title { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; border-bottom:1px solid var(--border2); padding-bottom:8px; }
+    .runner { display:grid; grid-template-columns:1fr auto 120px; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border2); }
+    .runner:last-child { border-bottom:none; }
+    .runner-name { font-size:12px; color:var(--text); }
+    .runner-species { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    .runner-score { font-size:12px; color:var(--accent2); text-align:right; }
+    .runner-bar-wrap { height:3px; background:var(--border); border-radius:2px; }
+    .runner-bar { height:100%; background:var(--accent2); border-radius:2px; }
+    .raw-toggle { font-size:10px; color:var(--muted); background:none; border:none; cursor:pointer; margin-top:18px; padding:0; font-family:inherit; letter-spacing:.08em; text-transform:uppercase; }
+    .raw-toggle:hover { color:var(--accent); }
+    #raw-response { display:none; font-size:10px; color:var(--muted); white-space:pre-wrap; word-break:break-all; background:#111; border:1px solid var(--border2); border-radius:4px; padding:12px; margin-top:8px; max-height:180px; overflow-y:auto; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Face-to-Creature Matcher &mdash; <span>AI Scorer</span></h1>
+  <div class="step-tag">Step 2 of 4</div>
+</header>
+
+<div class="layout">
+  <div>
+    <div class="panel">
+      <div class="panel-title">Input</div>
+      <label for="api-key">Anthropic API Key</label>
+      <input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
+      <div class="hint">Key stays in your browser — never sent anywhere except <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.</div>
+      <span class="input-label">Human Facial Ratios (paste JSON from validator)</span>
+      <textarea id="ratio-json" placeholder='{ "eye_spacing_ratio": 0.245, ... }' spellcheck="false"></textarea>
+      <div class="hint">Copy the JSON output from landmark-validator.html and paste it here.</div>
+      <button id="score-btn">Score &rarr;</button>
+      <div class="status" id="status">Enter your API key and ratio JSON to begin.</div>
+    </div>
+  </div>
+  <div>
+    <div class="panel">
+      <div class="panel-title">Match Results</div>
+      <div id="results-container">
+        <div id="results-placeholder">Results will appear here after scoring.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+
+// ── Dataset loader ────────────────────────────────────────────────────────────
+
+async function loadPetDataset() {
+  try {
+    const res = await fetch("./pet-dataset.json");
+    if (!res.ok) throw new Error("not found");
+    return await res.json();
+  } catch {
+    // Minimal fallback so the tool is still testable without the file
+    return { breeds: [
+      { id: "french_bulldog", name: "French Bulldog", species: "dog",
+        features: { eye_spacing_ratio:0.400, eye_width_ratio:0.194, eye_tilt:0.0,
+          nose_width_ratio:0.257, nose_length_ratio:0.154, mouth_width_ratio:0.339,
+          jaw_width_ratio:0.912, face_width_to_height:0.893, face_contour_taper:0.832 },
+        notes: "Brachycephalic — flat snout, wide round face, wide-set large eyes." },
+      { id: "german_shepherd", name: "German Shepherd", species: "dog",
+        features: { eye_spacing_ratio:0.306, eye_width_ratio:0.134, eye_tilt:8.1,
+          nose_width_ratio:0.246, nose_length_ratio:0.314, mouth_width_ratio:0.447,
+          jaw_width_ratio:0.712, face_width_to_height:0.620, face_contour_taper:1.168 },
+        notes: "Long narrow muzzle, strong eye tilt, tapered jaw, erect ears." },
+    ]};
+  }
+}
+
+// ── Caricature scoring constants ──────────────────────────────────────────────
+// Human stats computed from 26 real MediaPipe face samples.
+//
+// Breed extremity is measured against this SAME human distribution — not a
+// separate breed-population statistic. A breed's "flat nose" is extreme
+// relative to a human face, which is the actual caricature question being
+// asked. This also means breed dataset size/composition can't skew the
+// comparison the way a small, separately-computed breed mean/SD could.
+//
+// jaw_angle excluded — scale mismatch between MediaPipe humans (~88 deg avg)
+// and breed estimates (~46 deg avg). Will be recalibrated in a future pass.
+
+const HUMAN_AVG = {
+  eye_spacing_ratio: 0.2454, eye_width_ratio: 0.1902, eye_tilt: -1.6748,
+  nose_width_ratio: 0.1893, nose_length_ratio: 0.2163, mouth_width_ratio: 0.4092,
+  jaw_width_ratio: 0.8927, face_width_to_height: 0.8337, face_contour_taper: 1.0128,
+};
+
+const HUMAN_SD = {
+  eye_spacing_ratio: 0.0178, eye_width_ratio: 0.0135, eye_tilt: 8.0383,
+  nose_width_ratio: 0.0125, nose_length_ratio: 0.0272, mouth_width_ratio: 0.0505,
+  jaw_width_ratio: 0.0328, face_width_to_height: 0.1636, face_contour_taper: 0.0490,
+};
+
+// Feature importance — higher = stronger breed discriminator.
+// NOTE: this scales each feature's contribution to the final score, but does
+// NOT influence which feature gets selected as the "winner" — that's chosen
+// by raw signal magnitude alone. Breed primary-signature magnitudes (in
+// pet-dataset.json) are deliberately calibrated as target_z = K / importance
+// so that every breed has a fair shot at winning regardless of which axis
+// it owns. Don't change these values without re-verifying the breed dataset
+// magnitudes still produce a balanced win distribution.
+const IMPORTANCE = {
+  nose_length_ratio: 1.0, face_width_to_height: 1.0, eye_tilt: 0.9,
+  face_contour_taper: 0.8, eye_spacing_ratio: 0.8, jaw_width_ratio: 0.7,
+  nose_width_ratio: 0.5, mouth_width_ratio: 0.5, eye_width_ratio: 0.4,
+};
+
+// ── Caricature engine ─────────────────────────────────────────────────────────
+// Find the breed whose defining extremes best match THIS face's distinctive features.
+// Features where the human is near-average (|z| < 0.5) are excluded as noise.
+// The single strongest aligned signal carries 50% of the final score.
+
+function caricatureScore(rawRatios, breeds) {
+  // Fix MediaPipe eye_tilt angle wrapping (reports ±170 instead of small angle)
+  const R = Object.assign({}, rawRatios);
+  if (R.eye_tilt != null) {
+    if (R.eye_tilt > 90)  R.eye_tilt -= 180;
+    if (R.eye_tilt < -90) R.eye_tilt += 180;
+  }
+
+  // Human z-scores: how distinctive is each feature on this specific face?
+  const HZ = {};
+  for (const feat of Object.keys(IMPORTANCE)) {
+    const v = R[feat];
+    if (v == null || !HUMAN_SD[feat]) continue;
+    HZ[feat] = (v - HUMAN_AVG[feat]) / HUMAN_SD[feat];
+  }
+
+  const results = breeds.map(breed => {
+    const pf = {};
+
+    for (const feat of Object.keys(IMPORTANCE)) {
+      const hZ   = HZ[feat];
+      const bRaw = breed.features[feat];
+      if (hZ == null || bRaw == null || !HUMAN_SD[feat]) continue;
+
+      // Breed z-score uses the SAME human-anchored scale as the human's own z-score.
+      const bZ      = (bRaw - HUMAN_AVG[feat]) / HUMAN_SD[feat];
+      const aligned = Math.sign(hZ) === Math.sign(bZ);
+      const signal  = (aligned ? 1 : -1) * Math.abs(hZ) * Math.abs(bZ);
+
+      pf[feat] = {
+        human_raw: R[feat], breed_raw: bRaw,
+        human_z: Math.round(hZ * 10) / 10,
+        breed_z: Math.round(bZ * 10) / 10,
+        aligned, signal: Math.round(signal * 100) / 100,
+        importance: IMPORTANCE[feat],
+      };
+    }
+
+    // Winner-take-most: features below 0.5 sigma are noise and dropped
+    const active = Object.entries(pf)
+      .filter(([, v]) => Math.abs(v.human_z) >= 0.5)
+      .sort((a, b) => Math.abs(b[1].signal) - Math.abs(a[1].signal));
+
+    let score = 50;
+    if (active.length > 0) {
+      const [, top] = active[0];
+      const rest    = active.slice(1);
+      const winnerContrib = top.signal * top.importance;
+      let restScore = 0, restWeight = 0;
+      for (const [, v] of rest) { restScore += v.signal * v.importance; restWeight += v.importance; }
+      const restContrib = restWeight > 0 ? restScore / restWeight : 0;
+      const combined = winnerContrib * 0.5 + restContrib * 0.5;
+      score = Math.round(Math.max(0, Math.min(100, 50 + combined * 18)));
+    }
+
+    const matching  = active.filter(([, v]) =>  v.aligned).slice(0, 3).map(([f]) => f);
+    const diverging = active.filter(([, v]) => !v.aligned).slice(0, 2).map(([f]) => f);
+
+    return { id: breed.id, name: breed.name, species: breed.species,
+             score, matching, diverging, pf, notes: breed.notes || "" };
+  });
+
+  return results.sort((a, b) => b.score - a.score);
+}
+
+// ── Prompt builder ────────────────────────────────────────────────────────────
+
+function buildPrompt(rawRatios, breeds) {
+  const ranked = caricatureScore(rawRatios, breeds);
+  const top    = ranked[0];
+  const rest   = ranked.slice(1);
+
+  const distinctive = Object.entries(top.pf)
+    .sort((a, b) => Math.abs(b[1].human_z) - Math.abs(a[1].human_z))
+    .slice(0, 6)
+    .map(([f, v]) => {
+      const dir    = v.human_z > 0 ? "above avg" : "below avg";
+      const status = v.aligned ? "aligned" : "opposite";
+      return "  " + f + ": " + v.human_raw + " (" + dir + " " + Math.abs(v.human_z).toFixed(1) + "s) breed=" + v.breed_raw + " [" + status + "]";
+    }).join("\n");
+
+  const runnersJson = rest.map(r =>
+    '    {"id":"' + r.id + '","name":"' + r.name + '","species":"' + r.species +
+    '","score":' + r.score + ',"one_liner":"One sentence why this breed placed here."}'
+  ).join(",\n");
+
+  return "You are the copy engine for the Face-to-Creature Matcher, a fun app that matches human faces to animals using caricature mapping.\n\n" +
+    "The ranking is FINAL — computed in JS. Do not change it.\n\n" +
+    "Top match: " + top.name + " (" + top.species + ") score=" + top.score + "/100\n" +
+    "Runners-up: " + rest.map(r => r.name + " (" + r.score + ")").join(", ") + "\n\n" +
+    "Distinctive features vs top match (s = sigma from human average):\n" + distinctive + "\n\n" +
+    "Strongest alignments: " + top.matching.join(", ") + "\n" +
+    "Mismatches: " + top.diverging.join(", ") + "\n" +
+    "Breed character: " + top.notes + "\n\n" +
+    "Write output card copy. Tell the person which of their features are extreme and why that maps to this breed.\n" +
+    "Tone: playful, cheeky, confident. Like a naturalist who just clocked your face.\n\n" +
+    "Return ONLY valid JSON, no preamble, no markdown fences:\n\n" +
+    '{"top_match":{"id":"' + top.id + '","name":"' + top.name + '","species":"' + top.species + '",' +
+    '"score":' + top.score + ',' +
+    '"headline":"One punchy sentence 10-16 words — name the match and the feature that clinched it.",' +
+    '"rationale":"2-3 sentences. Name which features are extreme on this face and how they match what defines this breed. Caricature framing.",' +
+    '"matching_features":' + JSON.stringify(top.matching) + ',' +
+    '"diverging_features":' + JSON.stringify(top.diverging) + '},' +
+    '"runners_up":[\n' + runnersJson + '\n]}';
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function renderResults(result, rawText) {
+  const container = document.getElementById("results-container");
+  container.innerHTML = "";
+  const top = result.top_match;
+
+  const card = document.createElement("div");
+  card.className = "top-match";
+  card.innerHTML =
+    '<div class="match-rank">Best match</div>' +
+    '<div class="match-name">' + top.name + '</div>' +
+    '<div class="match-species">' + top.species + '</div>' +
+    '<div class="score-row"><div class="score-label">Similarity</div>' +
+    '<div class="score-bar-wrap"><div class="score-bar" style="width:' + top.score + '%"></div></div>' +
+    '<div class="score-num">' + top.score + '%</div></div>' +
+    '<div class="rationale"><strong style="color:var(--accent);display:block;margin-bottom:8px;font-size:13px;">' +
+    top.headline + '</strong>' + top.rationale + '</div>' +
+    '<div class="drivers">' +
+    (top.matching_features || []).map(f => '<div class="driver-tag match">&#10003; ' + f.replace(/_/g," ") + '</div>').join("") +
+    (top.diverging_features || []).map(f => '<div class="driver-tag diff">&#8599; ' + f.replace(/_/g," ") + '</div>').join("") +
+    '</div>';
+  container.appendChild(card);
+
+  if (result.runners_up && result.runners_up.length) {
+    const title = document.createElement("div");
+    title.className = "runners-title";
+    title.textContent = "Other breeds — ranked";
+    container.appendChild(title);
+    for (const r of result.runners_up) {
+      const row = document.createElement("div");
+      row.className = "runner";
+      row.innerHTML =
+        '<div><div class="runner-name">' + r.name + '</div>' +
+        '<div class="runner-species">' + r.species + '</div>' +
+        '<div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5;">' + (r.one_liner || "") + '</div></div>' +
+        '<div class="runner-score">' + r.score + '%</div>' +
+        '<div><div class="runner-bar-wrap"><div class="runner-bar" style="width:' + r.score + '%"></div></div></div>';
+      container.appendChild(row);
+    }
+  }
+
+  const toggle = document.createElement("button");
+  toggle.className = "raw-toggle";
+  toggle.textContent = "Show raw response";
+  container.appendChild(toggle);
+  const rawEl = document.createElement("pre");
+  rawEl.id = "raw-response";
+  rawEl.textContent = rawText;
+  container.appendChild(rawEl);
+  toggle.addEventListener("click", () => {
+    const open = rawEl.style.display === "block";
+    rawEl.style.display = open ? "none" : "block";
+    toggle.textContent = open ? "Show raw response" : "Hide raw response";
+  });
+}
+
+// ── Button ────────────────────────────────────────────────────────────────────
+
+function setStatus(msg, cls) {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = "status " + (cls || "");
+}
+
+document.getElementById("score-btn").addEventListener("click", async () => {
+  const apiKey    = document.getElementById("api-key").value.trim();
+  const ratioText = document.getElementById("ratio-json").value.trim();
+  if (!apiKey)    { setStatus("API key required.", "error"); return; }
+  if (!ratioText) { setStatus("Paste your ratio JSON first.", "error"); return; }
+
+  let humanRatios;
+  try { humanRatios = JSON.parse(ratioText); }
+  catch { setStatus("Ratio JSON is malformed — check brackets and commas.", "error"); return; }
+
+  const btn = document.getElementById("score-btn");
+  btn.disabled = true;
+
+  setStatus("Loading breed dataset...", "running");
+  let dataset;
+  try { dataset = await loadPetDataset(); }
+  catch (e) { setStatus("Could not load pet-dataset.json: " + e.message, "error"); btn.disabled = false; return; }
+
+  setStatus("Computing caricature scores...", "running");
+  let prompt;
+  try { prompt = buildPrompt(humanRatios, dataset.breeds); }
+  catch (e) { setStatus("Scoring error: " + e.message, "error"); btn.disabled = false; return; }
+
+  setStatus("Writing match copy with Claude...", "running");
+  let result, rawText;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err && err.error ? err.error.message : "API error " + res.status);
+    }
+    const data = await res.json();
+    rawText = data.content && data.content[0] ? data.content[0].text : "";
+    const clean = rawText.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
+    result = JSON.parse(clean);
+  } catch (e) {
+    setStatus("Scoring failed: " + e.message, "error");
+    btn.disabled = false;
+    return;
+  }
+
+  renderResults(result, rawText);
+  setStatus("Matched — " + result.top_match.name + " (" + result.top_match.score + "%)", "done");
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Face Landmark Validator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "SF Mono", "Fira Code", monospace;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 32px;
+    }
+
+    h1 {
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    h1 span { color: #7effd4; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1100px;
+    }
+
+    .panel {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 16px;
+    }
+
+    #drop-zone {
+      border: 2px dashed #2a2a2a;
+      border-radius: 6px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    #drop-zone:hover, #drop-zone.drag-over {
+      border-color: #7effd4;
+    }
+
+    #drop-zone p { color: #555; font-size: 13px; }
+    #drop-zone p span { color: #7effd4; }
+
+    #file-input { display: none; }
+
+    .canvas-wrap { position: relative; }
+
+    canvas {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+    }
+
+    #overlay-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #555;
+      margin-top: 12px;
+      min-height: 18px;
+    }
+
+    .status.running { color: #7effd4; }
+    .status.error   { color: #ff6b6b; }
+    .status.done    { color: #7effd4; }
+
+    /* Ratio output table */
+    .ratio-group { margin-bottom: 20px; }
+
+    .ratio-group-title {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #444;
+      border-bottom: 1px solid #222;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    .ratio-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #1e1e1e;
+      font-size: 12px;
+    }
+
+    .ratio-label { color: #888; }
+    .ratio-id    { color: #444; font-size: 10px; margin-top: 2px; }
+    .ratio-value { color: #7effd4; font-variant-numeric: tabular-nums; }
+    .ratio-value.qualitative { color: #f0c27f; }
+    .ratio-value.na          { color: #3a3a3a; }
+
+    .bar-wrap {
+      width: 80px;
+      height: 3px;
+      background: #222;
+      border-radius: 2px;
+      margin-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .bar {
+      height: 100%;
+      background: #7effd4;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    #raw-dump {
+      font-size: 10px;
+      color: #444;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 16px;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid #2a2a2a;
+      color: #555;
+      font-family: inherit;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover { border-color: #7effd4; color: #7effd4; }
+
+    .placeholder-msg {
+      color: #333;
+      font-size: 12px;
+      text-align: center;
+      padding: 40px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Face-to-Creature Matcher &mdash; <span>Landmark Validator</span></h1>
+
+<div class="layout">
+
+  <!-- LEFT: image input + overlay -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Input</div>
+
+      <div id="drop-zone">
+        <p>Drop a face photo here<br><span>or click to browse</span></p>
+        <input type="file" id="file-input" accept="image/*" />
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="img-canvas"></canvas>
+        <canvas id="overlay-canvas"></canvas>
+      </div>
+
+      <div class="status" id="status">Waiting for image&hellip;</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: computed ratios -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Canonical Feature Registry — Computed Values</div>
+      <div id="ratio-output">
+        <div class="placeholder-msg">Load an image to see ratios</div>
+      </div>
+
+      <div id="raw-dump-wrap" style="display:none">
+        <button class="copy-btn" id="copy-btn">Copy JSON</button>
+        <div id="raw-dump"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MediaPipe Tasks Vision via CDN -->
+<script type="module">
+import {
+  FaceLandmarker,
+  FilesetResolver,
+  DrawingUtils
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js";
+
+// ─── Canonical feature registry ──────────────────────────────────────────────
+// Each entry maps a canonical ID to its human display label and the computation
+// method: 'geometric' (derived from landmark coords) or 'qualitative' (lookup).
+// Qualitative entries are N/A at extraction time — they're authored in the
+// creature dataset and reconciled by the AI scoring layer.
+
+// Pruned to 10 active scoring features.
+// Dropped: ears (always null), forehead (low confidence), vertical positions
+// (weak signal), brow details, lip/philtrum, eye_height_ratio (correlated
+// with spacing), nose_bridge_width, qualitative fields.
+const REGISTRY_GROUPS = [
+  {
+    group: "Eyes",
+    features: [
+      { id: "eye_spacing_ratio", label: "Eye spacing",  type: "geometric" },
+      { id: "eye_width_ratio",   label: "Eye width",    type: "geometric" },
+      { id: "eye_tilt",          label: "Eye tilt (°)", type: "geometric" },
+    ]
+  },
+  {
+    group: "Nose",
+    features: [
+      { id: "nose_width_ratio",  label: "Nose width",  type: "geometric" },
+      { id: "nose_length_ratio", label: "Nose length", type: "geometric" },
+    ]
+  },
+  {
+    group: "Mouth",
+    features: [
+      { id: "mouth_width_ratio", label: "Mouth width", type: "geometric" },
+    ]
+  },
+  {
+    group: "Jaw & Face",
+    features: [
+      { id: "jaw_width_ratio",      label: "Jaw width",        type: "geometric" },
+      { id: "jaw_angle",            label: "Jaw angle (°)",    type: "geometric" },
+      { id: "face_width_to_height", label: "Face aspect ratio",type: "geometric" },
+      { id: "face_contour_taper",   label: "Face taper",       type: "geometric" },
+    ]
+  },
+];
+
+// ─── MediaPipe landmark index constants ──────────────────────────────────────
+// Source: MediaPipe Face Mesh 478-point map.
+// Left/Right are from the subject's perspective.
+
+const LM = {
+  // Face oval extremes
+  FACE_TOP:          10,
+  FACE_BOTTOM:       152,
+  FACE_LEFT:         234,
+  FACE_RIGHT:        454,
+
+  // Jaw
+  JAW_LEFT:          172,
+  JAW_RIGHT:         397,
+  JAW_TIP:           152,
+
+  // Eyes — inner/outer corners
+  LEFT_EYE_INNER:    133,
+  LEFT_EYE_OUTER:    33,
+  LEFT_EYE_TOP:      159,
+  LEFT_EYE_BOTTOM:   145,
+  RIGHT_EYE_INNER:   362,
+  RIGHT_EYE_OUTER:   263,
+  RIGHT_EYE_TOP:     386,
+  RIGHT_EYE_BOTTOM:  374,
+
+  // Eyebrows
+  LEFT_BROW_INNER:   107,
+  LEFT_BROW_OUTER:   46,
+  LEFT_BROW_PEAK:    52,
+  RIGHT_BROW_INNER:  336,
+  RIGHT_BROW_OUTER:  276,
+  RIGHT_BROW_PEAK:   282,
+
+  // Nose
+  NOSE_TIP:          4,
+  NOSE_BRIDGE_TOP:   168,
+  NOSE_LEFT_WING:    218,
+  NOSE_RIGHT_WING:   438,
+  NOSE_BASE:         2,
+  NOSE_BRIDGE_MID:   6,
+
+  // Mouth
+  MOUTH_LEFT:        61,
+  MOUTH_RIGHT:       291,
+  UPPER_LIP_TOP:     0,
+  LOWER_LIP_BOTTOM:  17,
+  UPPER_LIP_BASE:    13,
+
+  // Cheekbones (approximate)
+  CHEEK_LEFT:        116,
+  CHEEK_RIGHT:       345,
+
+  // Forehead (sparse)
+  FOREHEAD_TOP:      10,
+  FOREHEAD_LEFT:     70,
+  FOREHEAD_RIGHT:    300,
+};
+
+// ─── Geometry helpers ─────────────────────────────────────────────────────────
+
+function lm(landmarks, idx) {
+  return landmarks[idx]; // {x, y, z} all normalised 0-1
+}
+
+function dist(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+
+function angleDeg(a, b) {
+  return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
+}
+
+// ─── Ratio computation ────────────────────────────────────────────────────────
+
+function computeRatios(landmarks) {
+  const p = (idx) => lm(landmarks, idx);
+  const r = (v, d = 3) => parseFloat(v.toFixed(d));
+
+  const faceW = dist(p(LM.FACE_LEFT),  p(LM.FACE_RIGHT));
+  const faceH = dist(p(LM.FACE_TOP),   p(LM.FACE_BOTTOM));
+
+  // Eyes
+  const leftEyeW  = dist(p(LM.LEFT_EYE_INNER),  p(LM.LEFT_EYE_OUTER));
+  const rightEyeW = dist(p(LM.RIGHT_EYE_INNER), p(LM.RIGHT_EYE_OUTER));
+  const avgEyeW   = (leftEyeW + rightEyeW) / 2;
+  const eyeSpan   = dist(p(LM.LEFT_EYE_INNER), p(LM.RIGHT_EYE_INNER));
+
+  const leftTilt  = angleDeg(p(LM.LEFT_EYE_INNER),  p(LM.LEFT_EYE_OUTER));
+  const rightTilt = angleDeg(p(LM.RIGHT_EYE_OUTER), p(LM.RIGHT_EYE_INNER));
+  const avgTilt   = (leftTilt + rightTilt) / 2;
+
+  // Nose
+  const noseW = dist(p(LM.NOSE_LEFT_WING), p(LM.NOSE_RIGHT_WING));
+  const noseL = dist(p(LM.NOSE_BRIDGE_TOP), p(LM.NOSE_TIP));
+
+  // Mouth
+  const mouthW = dist(p(LM.MOUTH_LEFT), p(LM.MOUTH_RIGHT));
+
+  // Jaw & face
+  const jawW   = dist(p(LM.JAW_LEFT),      p(LM.JAW_RIGHT));
+  const cheekW = dist(p(LM.CHEEK_LEFT),    p(LM.CHEEK_RIGHT));
+  const foreW  = dist(p(LM.FOREHEAD_LEFT), p(LM.FOREHEAD_RIGHT));
+
+  // V-angle at chin tip — wide/round jaw → higher; narrow/pointed → lower.
+  // The old (|L|+|R|)/2 formula was always ~90° for any symmetric face (geometric identity).
+  const jawLv = p(LM.JAW_LEFT), jawRv = p(LM.JAW_RIGHT), jawTv = p(LM.JAW_TIP);
+  const jv1x = jawLv.x - jawTv.x, jv1y = jawLv.y - jawTv.y;
+  const jv2x = jawRv.x - jawTv.x, jv2y = jawRv.y - jawTv.y;
+  const jDot = jv1x*jv2x + jv1y*jv2y;
+  const jM1 = Math.sqrt(jv1x*jv1x + jv1y*jv1y);
+  const jM2 = Math.sqrt(jv2x*jv2x + jv2y*jv2y);
+  const jawAngle  = r(Math.acos(Math.max(-1, Math.min(1, jDot/(jM1*jM2)))) * (180/Math.PI));
+
+  return {
+    eye_spacing_ratio:    r(eyeSpan / faceW),
+    eye_width_ratio:      r(avgEyeW / faceW),
+    eye_tilt:             r(avgTilt),
+    nose_width_ratio:     r(noseW / faceW),
+    nose_length_ratio:    r(noseL / faceH),
+    mouth_width_ratio:    r(mouthW / faceW),
+    jaw_width_ratio:      r(jawW / cheekW),
+    jaw_angle:            r(jawAngle),
+    face_width_to_height: r(faceW / faceH),
+    face_contour_taper:   r(foreW / jawW),
+  };
+}
+
+// ─── Rendering helpers ────────────────────────────────────────────────────────
+
+function renderRatios(ratios) {
+  const out = document.getElementById("ratio-output");
+  out.innerHTML = "";
+
+  // Known ranges for bar scaling (empirical human face ranges)
+  const RANGES = {
+    eye_spacing_ratio:    [0.25, 0.45],
+    eye_width_ratio:      [0.10, 0.22],
+    eye_tilt:             [-15,  15],
+    nose_width_ratio:     [0.18, 0.40],
+    nose_length_ratio:    [0.15, 0.35],
+    mouth_width_ratio:    [0.28, 0.55],
+    jaw_width_ratio:      [0.60, 1.00],
+    jaw_angle:            [20,   70],
+    face_width_to_height: [0.55, 0.90],
+    face_contour_taper:   [0.70, 1.30],
+  };
+
+  for (const group of REGISTRY_GROUPS) {
+    const g = document.createElement("div");
+    g.className = "ratio-group";
+
+    const title = document.createElement("div");
+    title.className = "ratio-group-title";
+    title.textContent = group.group;
+    g.appendChild(title);
+
+    for (const feat of group.features) {
+      const val = ratios[feat.id];
+      const row = document.createElement("div");
+      row.className = "ratio-row";
+
+      const labelWrap = document.createElement("div");
+      const labelEl = document.createElement("div");
+      labelEl.className = "ratio-label";
+      labelEl.textContent = feat.label;
+      const idEl = document.createElement("div");
+      idEl.className = "ratio-id";
+      idEl.textContent = feat.id;
+      labelWrap.appendChild(labelEl);
+      labelWrap.appendChild(idEl);
+
+      const valEl = document.createElement("div");
+      valEl.style.display = "flex";
+      valEl.style.alignItems = "center";
+
+      const numEl = document.createElement("div");
+
+      if (feat.type === "na") {
+        numEl.className = "ratio-value na";
+        numEl.textContent = "N/A";
+      } else if (feat.type === "qualitative" || val === null) {
+        numEl.className = "ratio-value qualitative";
+        numEl.textContent = "qualitative";
+      } else {
+        numEl.className = "ratio-value";
+        numEl.textContent = typeof val === "number" ? val.toFixed(3) : val;
+
+        // Bar
+        const range = RANGES[feat.id];
+        if (range) {
+          const pct = Math.max(0, Math.min(1, (val - range[0]) / (range[1] - range[0])));
+          const barWrap = document.createElement("div");
+          barWrap.className = "bar-wrap";
+          const bar = document.createElement("div");
+          bar.className = "bar";
+          bar.style.width = (pct * 100) + "%";
+          barWrap.appendChild(bar);
+          valEl.appendChild(barWrap);
+        }
+      }
+
+      valEl.prepend(numEl);
+      row.appendChild(labelWrap);
+      row.appendChild(valEl);
+      g.appendChild(row);
+    }
+
+    out.appendChild(g);
+  }
+}
+
+function drawMeshOverlay(canvas, landmarks, imgW, imgH) {
+  const ctx = canvas.getContext("2d");
+  canvas.width  = imgW;
+  canvas.height = imgH;
+  ctx.clearRect(0, 0, imgW, imgH);
+
+  // Draw key landmark dots
+  const KEY_POINTS = Object.values(LM);
+  ctx.fillStyle = "#7effd4";
+  for (const idx of KEY_POINTS) {
+    const pt = landmarks[idx];
+    ctx.beginPath();
+    ctx.arc(pt.x * imgW, pt.y * imgH, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Draw connecting lines for key feature groups
+  const CONNECTIONS = [
+    // Eye outlines
+    [LM.LEFT_EYE_INNER,  LM.LEFT_EYE_TOP],
+    [LM.LEFT_EYE_TOP,    LM.LEFT_EYE_OUTER],
+    [LM.LEFT_EYE_OUTER,  LM.LEFT_EYE_BOTTOM],
+    [LM.LEFT_EYE_BOTTOM, LM.LEFT_EYE_INNER],
+    [LM.RIGHT_EYE_INNER, LM.RIGHT_EYE_TOP],
+    [LM.RIGHT_EYE_TOP,   LM.RIGHT_EYE_OUTER],
+    [LM.RIGHT_EYE_OUTER, LM.RIGHT_EYE_BOTTOM],
+    [LM.RIGHT_EYE_BOTTOM,LM.RIGHT_EYE_INNER],
+    // Brows
+    [LM.LEFT_BROW_INNER,  LM.LEFT_BROW_PEAK],
+    [LM.LEFT_BROW_PEAK,   LM.LEFT_BROW_OUTER],
+    [LM.RIGHT_BROW_INNER, LM.RIGHT_BROW_PEAK],
+    [LM.RIGHT_BROW_PEAK,  LM.RIGHT_BROW_OUTER],
+    // Nose
+    [LM.NOSE_BRIDGE_TOP, LM.NOSE_BASE],
+    [LM.NOSE_LEFT_WING,  LM.NOSE_RIGHT_WING],
+    [LM.NOSE_BASE,       LM.NOSE_TIP],
+    // Mouth
+    [LM.MOUTH_LEFT, LM.MOUTH_RIGHT],
+    [LM.UPPER_LIP_TOP, LM.LOWER_LIP_BOTTOM],
+    // Jaw
+    [LM.JAW_LEFT,  LM.JAW_TIP],
+    [LM.JAW_RIGHT, LM.JAW_TIP],
+    [LM.JAW_LEFT,  LM.CHEEK_LEFT],
+    [LM.JAW_RIGHT, LM.CHEEK_RIGHT],
+    // Face width markers
+    [LM.FACE_LEFT, LM.FACE_RIGHT],
+    // Eye spacing
+    [LM.LEFT_EYE_INNER, LM.RIGHT_EYE_INNER],
+  ];
+
+  ctx.strokeStyle = "rgba(126, 255, 212, 0.35)";
+  ctx.lineWidth = 1;
+  for (const [a, b] of CONNECTIONS) {
+    const pa = landmarks[a];
+    const pb = landmarks[b];
+    ctx.beginPath();
+    ctx.moveTo(pa.x * imgW, pa.y * imgH);
+    ctx.lineTo(pb.x * imgW, pb.y * imgH);
+    ctx.stroke();
+  }
+}
+
+// ─── MediaPipe setup ──────────────────────────────────────────────────────────
+
+let faceLandmarker = null;
+
+async function initMediaPipe() {
+  setStatus("Loading MediaPipe model…", "running");
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+  );
+  faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      delegate: "GPU",
+    },
+    outputFaceBlendshapes: false,
+    runningMode: "IMAGE",
+    numFaces: 1,
+  });
+  setStatus("Model ready — drop a face photo to begin", "done");
+}
+
+// ─── Image processing ─────────────────────────────────────────────────────────
+
+async function processImage(file) {
+  setStatus("Processing…", "running");
+
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  await img.decode();
+
+  // Draw source image
+  const imgCanvas = document.getElementById("img-canvas");
+  imgCanvas.width  = img.naturalWidth;
+  imgCanvas.height = img.naturalHeight;
+  imgCanvas.getContext("2d").drawImage(img, 0, 0);
+
+  // Run detection
+  const result = faceLandmarker.detect(img);
+
+  if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
+    setStatus("No face detected — try a clearer front-facing photo", "error");
+    return;
+  }
+
+  const landmarks = result.faceLandmarks[0];
+
+  // Overlay
+  const overlayCanvas = document.getElementById("overlay-canvas");
+  drawMeshOverlay(overlayCanvas, landmarks, img.naturalWidth, img.naturalHeight);
+
+  // Compute ratios
+  const ratios = computeRatios(landmarks);
+  renderRatios(ratios);
+
+  // Raw JSON dump
+  const dumpWrap = document.getElementById("raw-dump-wrap");
+  const dump = document.getElementById("raw-dump");
+  dumpWrap.style.display = "block";
+  dump.textContent = JSON.stringify(ratios, null, 2);
+
+  setStatus(`✓ ${Object.values(ratios).filter(v => v !== null).length} geometric ratios computed`, "done");
+  URL.revokeObjectURL(img.src);
+}
+
+// ─── UI wiring ────────────────────────────────────────────────────────────────
+
+function setStatus(msg, cls = "") {
+  const el = document.getElementById("status");
+  el.textContent = msg;
+  el.className = "status " + cls;
+}
+
+const dropZone  = document.getElementById("drop-zone");
+const fileInput = document.getElementById("file-input");
+
+dropZone.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) processImage(fileInput.files[0]);
+});
+
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropZone.classList.add("drag-over");
+});
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith("image/")) processImage(f);
+});
+
+document.getElementById("copy-btn").addEventListener("click", () => {
+  const text = document.getElementById("raw-dump").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById("copy-btn").textContent = "Copied!";
+    setTimeout(() => document.getElementById("copy-btn").textContent = "Copy JSON", 1500);
+  });
+});
+
+// Init
+initMediaPipe();
+</script>
+</body>
+</html>

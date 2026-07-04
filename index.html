@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Face-to-Creature Matcher</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b1120; --surface: #141d2e; --border: #253347; --border2: #1a2538;
+      --muted: #8ea5bc; --dim: #6d8da8; --text: #e2eaf5; --accent: #7dd3c0;
+      --accent2: #f0c27f; --error: #f07878;
+    }
+    body { font-family: "SF Mono","Fira Code","Cascadia Code",monospace; background:var(--bg); color:var(--text); min-height:100vh; padding:32px; }
+    .wrap { max-width: 1140px; margin: 0 auto; }
+    header { margin-bottom: 28px; }
+    h1 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    h1 span { color: var(--accent); }
+    .sub { font-size: 11px; color: var(--dim); margin-top: 6px; }
+
+    .layout { display: grid; grid-template-columns: 1fr 360px; gap: 20px; margin-bottom: 20px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .panel-title { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+
+    #drop-zone { border: 2px dashed var(--border); border-radius: 6px; padding: 28px 20px; text-align: center; cursor: pointer; transition: border-color .2s; margin-bottom: 14px; }
+    #drop-zone:hover, #drop-zone.drag-over { border-color: var(--accent); }
+    #drop-zone p { color: var(--muted); font-size: 12px; }
+    #drop-zone p span { color: var(--accent); }
+    #file-input { display: none; }
+
+    .canvas-wrap { position: relative; max-width: 420px; margin: 0 auto; }
+    canvas { width: 100%; border-radius: 4px; display: block; }
+    #overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+    label[for="api-key"] { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+    input[type="password"] { width: 100%; background: #0d1526; border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: inherit; font-size: 11px; padding: 10px 12px; outline: none; transition: border-color .15s; }
+    input[type="password"]:focus { border-color: var(--accent); }
+    .hint { font-size: 10px; color: var(--dim); margin-top: 6px; line-height: 1.5; }
+    .hint a { color: var(--accent); text-decoration: none; }
+    #match-btn { width: 100%; margin-top: 16px; background: none; border: 1px solid var(--accent); color: var(--accent); font-family: inherit; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 11px; border-radius: 5px; cursor: pointer; transition: background .15s, color .15s; }
+    #match-btn:hover:not(:disabled) { background: var(--accent); color: #0b1120; }
+    #match-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .status { font-size: 11px; color: var(--muted); margin-top: 10px; min-height: 16px; }
+    .status.running { color: var(--accent); }
+    .status.error { color: var(--error); }
+    .status.done { color: var(--accent); }
+
+    .top-match {
+      position: relative;
+      border: 2px solid transparent; border-radius: 10px;
+      background: linear-gradient(var(--surface), var(--surface)) padding-box,
+                  linear-gradient(135deg, var(--accent), var(--accent2)) border-box;
+      box-shadow: 0 0 32px rgba(125,211,192,.18), 0 0 1px rgba(125,211,192,.55);
+      padding: 24px;
+    }
+    .top-match .corner { position: absolute; width: 16px; height: 16px; border: 1.5px solid var(--accent); opacity: .7; }
+    .top-match .corner-tl { top: 9px; left: 9px; border-right: none; border-bottom: none; }
+    .top-match .corner-br { bottom: 9px; right: 9px; border-left: none; border-top: none; }
+    .match-rank { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; text-shadow: 0 0 10px rgba(125,211,192,.45); }
+    .match-name { font-size: 24px; color: var(--accent); font-weight: 600; letter-spacing: .02em; margin-bottom: 4px; }
+    .match-species { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 16px; }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); width: 90px; flex-shrink: 0; }
+    .score-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+    .score-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width .6s ease; }
+    .score-num { font-size: 13px; color: var(--accent); width: 42px; text-align: right; flex-shrink: 0; }
+    .rationale { font-size: 12px; color: var(--text); line-height: 1.7; border-top: 1px solid var(--border2); padding-top: 14px; margin-top: 4px; }
+    .drivers { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .driver-tag { font-size: 10px; letter-spacing: .06em; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border); color: var(--muted); }
+    .driver-tag.match { border-color: var(--accent); color: var(--accent); }
+    .driver-tag.diff { border-color: var(--border); color: var(--dim); }
+
+    .legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; font-size: 11px; color: var(--muted); }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+    .radar-wrap { position: relative; width: 100%; height: 360px; }
+
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 4px; }
+    .compare-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 8px; text-align: center; }
+    .callout-frame { position: relative; width: 100%; aspect-ratio: 380 / 300; }
+    .callout-img-wrap { position: absolute; top: 0; left: 18.42%; width: 63.16%; height: 100%; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
+    .callout-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .breed-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--border); gap: 6px; padding: 14px; text-align: center; }
+    .breed-placeholder-name { color: var(--accent); font-size: 13px; }
+    .breed-placeholder-note { color: var(--muted); font-size: 9px; line-height: 1.5; }
+    .callout-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .callout-line { fill: none; stroke: rgba(125,211,192,.5); stroke-width: 1; }
+    .callout-dot { fill: var(--accent); stroke: var(--bg); stroke-width: .75; }
+    .callout-label { position: absolute; transform: translateY(-50%); font-size: 9px; letter-spacing: .04em; color: var(--accent); line-height: 1.3; width: 17%; }
+    .callout-label-left { left: 0; text-align: right; padding-right: 5px; }
+    .callout-label-right { right: 0; text-align: left; padding-left: 5px; }
+
+    .runners-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
+    .rank-card { border-radius: 8px; padding: 16px; }
+    .rank-card.tier-2 { border: 1.5px solid var(--accent2); }
+    .rank-card.tier-3 { border: 1px solid var(--border); opacity: .88; }
+    .rank-badge { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px; }
+    .rank-card.tier-2 .rank-badge { color: var(--accent2); }
+    .rank-card.tier-3 .rank-badge { color: var(--muted); }
+    .rank-name { font-weight: 600; margin-bottom: 2px; color: var(--text); }
+    .rank-card.tier-2 .rank-name { font-size: 15px; }
+    .rank-card.tier-3 .rank-name { font-size: 13px; }
+    .rank-species { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+    .rank-score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .rank-score-bar-wrap { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+    .rank-score-bar { height: 100%; border-radius: 2px; }
+    .rank-card.tier-2 .rank-score-bar { background: var(--accent2); }
+    .rank-card.tier-3 .rank-score-bar { background: var(--muted); }
+    .rank-score-num { font-size: 11px; flex-shrink: 0; }
+    .rank-card.tier-2 .rank-score-num { color: var(--accent2); }
+    .rank-card.tier-3 .rank-score-num { color: var(--muted); }
+    .rank-note { font-size: 10px; color: var(--dim); line-height: 1.6; }
+
+    .raw-toggle { font-size: 10px; color: var(--dim); background: none; border: none; cursor: pointer; margin-top: 4px; padding: 0; font-family: inherit; letter-spacing: .08em; text-transform: uppercase; }
+    .raw-toggle:hover { color: var(--accent); }
+    #raw-response { display: none; font-size: 10px; color: var(--muted); white-space: pre-wrap; word-break: break-all; background: var(--bg); border: 1px solid var(--border2); border-radius: 4px; padding: 12px; margin-top: 8px; max-height: 180px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Face-to-Creature Matcher — <span>Phase 1</span></h1>
+  <div class="sub">Upload a face photo. Everything runs in your browser — only the final numeric measurements (never the photo) reach Claude.</div>
+</header>
+
+<div class="layout">
+  <div class="panel">
+    <div class="panel-title">Your photo</div>
+    <div id="drop-zone">
+      <p>Drop a face photo here<br><span>or click to browse</span></p>
+      <input type="file" id="file-input" accept="image/*" />
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="img-canvas"></canvas>
+      <canvas id="overlay-canvas"></canvas>
+    </div>
+    <div class="status" id="detect-status">Loading face detection model…</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Match settings</div>
+    <label for="api-key">Anthropic API key</label>
+    <input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
+    <div class="hint">Key stays in your browser — only sent to <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.</div>
+    <button id="match-btn">Match me &rarr;</button>
+    <div class="status" id="match-status">Drop a photo, then tap Match me.</div>
+  </div>
+</div>
+
+<div id="results-section" style="display:none">
+
+  <div class="panel">
+    <div id="results-container"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Feature shape comparison</div>
+    <div class="legend-row" id="radar-legend"></div>
+    <div class="radar-wrap"><canvas id="radar-canvas"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Side by side</div>
+    <div class="compare-grid" id="photo-compare"></div>
+    <div class="hint" id="compare-hint"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">#2 and #3</div>
+    <div id="runners-container"></div>
+    <button class="raw-toggle" id="raw-toggle">Show raw response</button>
+    <pre id="raw-response"></pre>
+  </div>
+
+</div>
+
+</div>
+
+<!-- Chart.js — plain script, sets the global window.Chart used below -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<script type="module">
+import {
+  FaceLandmarker,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.js";
+
+// ── MediaPipe landmark index constants (ported verbatim from landmark-validator.html) ──
+const LM = {
+  FACE_TOP: 10, FACE_BOTTOM: 152, FACE_LEFT: 234, FACE_RIGHT: 454,
+  JAW_LEFT: 172, JAW_RIGHT: 397, JAW_TIP: 152,
+  LEFT_EYE_INNER: 133, LEFT_EYE_OUTER: 33, LEFT_EYE_TOP: 159, LEFT_EYE_BOTTOM: 145,
+  RIGHT_EYE_INNER: 362, RIGHT_EYE_OUTER: 263, RIGHT_EYE_TOP: 386, RIGHT_EYE_BOTTOM: 374,
+  LEFT_BROW_INNER: 107, LEFT_BROW_OUTER: 46, LEFT_BROW_PEAK: 52,
+  RIGHT_BROW_INNER: 336, RIGHT_BROW_OUTER: 276, RIGHT_BROW_PEAK: 282,
+  NOSE_TIP: 4, NOSE_BRIDGE_TOP: 168, NOSE_LEFT_WING: 218, NOSE_RIGHT_WING: 438,
+  NOSE_BASE: 2, NOSE_BRIDGE_MID: 6,
+  MOUTH_LEFT: 61, MOUTH_RIGHT: 291, UPPER_LIP_TOP: 0, LOWER_LIP_BOTTOM: 17, UPPER_LIP_BASE: 13,
+  CHEEK_LEFT: 116, CHEEK_RIGHT: 345,
+  FOREHEAD_TOP: 10, FOREHEAD_LEFT: 70, FOREHEAD_RIGHT: 300,
+};
+
+function lm(landmarks, idx) { return landmarks[idx]; }
+function dist(a, b) { return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2); }
+function angleDeg(a, b) { return Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI); }
+
+function computeRatios(landmarks) {
+  const p = (idx) => lm(landmarks, idx);
+  const r = (v, d = 3) => parseFloat(v.toFixed(d));
+
+  const faceW = dist(p(LM.FACE_LEFT), p(LM.FACE_RIGHT));
+  const faceH = dist(p(LM.FACE_TOP), p(LM.FACE_BOTTOM));
+
+  const leftEyeW = dist(p(LM.LEFT_EYE_INNER), p(LM.LEFT_EYE_OUTER));
+  const rightEyeW = dist(p(LM.RIGHT_EYE_INNER), p(LM.RIGHT_EYE_OUTER));
+  const avgEyeW = (leftEyeW + rightEyeW) / 2;
+  const eyeSpan = dist(p(LM.LEFT_EYE_INNER), p(LM.RIGHT_EYE_INNER));
+
+  const leftTilt = angleDeg(p(LM.LEFT_EYE_INNER), p(LM.LEFT_EYE_OUTER));
+  const rightTilt = angleDeg(p(LM.RIGHT_EYE_OUTER), p(LM.RIGHT_EYE_INNER));
+  const avgTilt = (leftTilt + rightTilt) / 2;
+
+  const noseW = dist(p(LM.NOSE_LEFT_WING), p(LM.NOSE_RIGHT_WING));
+  const noseL = dist(p(LM.NOSE_BRIDGE_TOP), p(LM.NOSE_TIP));
+  const mouthW = dist(p(LM.MOUTH_LEFT), p(LM.MOUTH_RIGHT));
+
+  const jawW = dist(p(LM.JAW_LEFT), p(LM.JAW_RIGHT));
+  const cheekW = dist(p(LM.CHEEK_LEFT), p(LM.CHEEK_RIGHT));
+  const foreW = dist(p(LM.FOREHEAD_LEFT), p(LM.FOREHEAD_RIGHT));
+
+  // jaw_angle: V-angle at the chin tip between the two jaw corners.
+  // Geometrically meaningful — wide/round jaw = higher angle, narrow/pointed = lower.
+  // NOTE: the old formula (|L|+|R|)/2 was broken — it's a mathematical identity that
+  // always gives ~90° for any symmetric face, measuring head tilt not jaw shape.
+  const jawL = p(LM.JAW_LEFT), jawR = p(LM.JAW_RIGHT), jawT = p(LM.JAW_TIP);
+  const jv1x = jawL.x - jawT.x, jv1y = jawL.y - jawT.y;
+  const jv2x = jawR.x - jawT.x, jv2y = jawR.y - jawT.y;
+  const jDot = jv1x*jv2x + jv1y*jv2y;
+  const jM1 = Math.sqrt(jv1x*jv1x + jv1y*jv1y);
+  const jM2 = Math.sqrt(jv2x*jv2x + jv2y*jv2y);
+  const jawAngle = r(Math.acos(Math.max(-1, Math.min(1, jDot/(jM1*jM2)))) * (180/Math.PI));
+
+  return {
+    eye_spacing_ratio: r(eyeSpan / faceW),
+    eye_width_ratio: r(avgEyeW / faceW),
+    eye_tilt: r(avgTilt),
+    nose_width_ratio: r(noseW / faceW),
+    nose_length_ratio: r(noseL / faceH),
+    mouth_width_ratio: r(mouthW / faceW),
+    jaw_width_ratio: r(jawW / cheekW),
+    jaw_angle: r(jawAngle),
+    face_width_to_height: r(faceW / faceH),
+    face_contour_taper: r(foreW / jawW),
+  };
+}
+
+function drawMeshOverlay(canvas, landmarks, imgW, imgH) {
+  const ctx = canvas.getContext("2d");
+  canvas.width = imgW;
+  canvas.height = imgH;
+  ctx.clearRect(0, 0, imgW, imgH);
+
+  const KEY_POINTS = Object.values(LM);
+  ctx.fillStyle = "#7effd4";
+  for (const idx of KEY_POINTS) {
+    const pt = landmarks[idx];
+    ctx.beginPath();
+    ctx.arc(pt.x * imgW, pt.y * imgH, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const CONNECTIONS = [
+    [LM.LEFT_EYE_INNER, LM.LEFT_EYE_TOP], [LM.LEFT_EYE_TOP, LM.LEFT_EYE_OUTER],
+    [LM.LEFT_EYE_OUTER, LM.LEFT_EYE_BOTTOM], [LM.LEFT_EYE_BOTTOM, LM.LEFT_EYE_INNER],
+    [LM.RIGHT_EYE_INNER, LM.RIGHT_EYE_TOP], [LM.RIGHT_EYE_TOP, LM.RIGHT_EYE_OUTER],
+    [LM.RIGHT_EYE_OUTER, LM.RIGHT_EYE_BOTTOM], [LM.RIGHT_EYE_BOTTOM, LM.RIGHT_EYE_INNER],
+    [LM.LEFT_BROW_INNER, LM.LEFT_BROW_PEAK], [LM.LEFT_BROW_PEAK, LM.LEFT_BROW_OUTER],
+    [LM.RIGHT_BROW_INNER, LM.RIGHT_BROW_PEAK], [LM.RIGHT_BROW_PEAK, LM.RIGHT_BROW_OUTER],
+    [LM.NOSE_BRIDGE_TOP, LM.NOSE_BASE], [LM.NOSE_LEFT_WING, LM.NOSE_RIGHT_WING], [LM.NOSE_BASE, LM.NOSE_TIP],
+    [LM.MOUTH_LEFT, LM.MOUTH_RIGHT], [LM.UPPER_LIP_TOP, LM.LOWER_LIP_BOTTOM],
+    [LM.JAW_LEFT, LM.JAW_TIP], [LM.JAW_RIGHT, LM.JAW_TIP],
+    [LM.JAW_LEFT, LM.CHEEK_LEFT], [LM.JAW_RIGHT, LM.CHEEK_RIGHT],
+    [LM.FACE_LEFT, LM.FACE_RIGHT], [LM.LEFT_EYE_INNER, LM.RIGHT_EYE_INNER],
+  ];
+
+  ctx.strokeStyle = "rgba(126, 255, 212, 0.35)";
+  ctx.lineWidth = 1;
+  for (const [a, b] of CONNECTIONS) {
+    const pa = landmarks[a];
+    const pb = landmarks[b];
+    ctx.beginPath();
+    ctx.moveTo(pa.x * imgW, pa.y * imgH);
+    ctx.lineTo(pb.x * imgW, pb.y * imgH);
+    ctx.stroke();
+  }
+}
+
+// ── Breed dataset (embedded — see note in scorer.html on why not fetched) ──
+// Source of truth: pet-dataset.json (v1.3.0). Keep in sync if that file changes.
+const PET_DATASET = [
+  { id: "french_bulldog", name: "French Bulldog", species: "dog",
+    features: { eye_spacing_ratio: 0.2596, eye_width_ratio: 0.1943, eye_tilt: -0.871, nose_width_ratio: 0.1943, nose_length_ratio: 0.1565, mouth_width_ratio: 0.4193, jaw_width_ratio: 0.9025, jaw_angle: 145.17, face_width_to_height: 0.9973, face_contour_taper: 0.9981 },
+    notes: "Primary signature: shortest nose_length_ratio in the dataset (uncontested) — brachycephalic flat-face archetype. Secondary: moderately wide/round face, wide-set eyes." },
+  { id: "labrador_retriever", name: "Labrador Retriever", species: "dog",
+    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1875, eye_tilt: -0.0671, nose_width_ratio: 0.1918, nose_length_ratio: 0.2217, mouth_width_ratio: 0.4446, jaw_width_ratio: 0.9958, jaw_angle: 141.01, face_width_to_height: 0.801, face_contour_taper: 1.0177 },
+    notes: "Primary signature: widest jaw_width_ratio in the dataset (uncontested) — sturdy, friendly broad-jaw archetype. Magnitude calibrated higher than other primaries to compensate for jaw_width's lower scoring importance weight. Secondary: warm wide mouth." },
+  { id: "golden_retriever", name: "Golden Retriever", species: "dog",
+    features: { eye_spacing_ratio: 0.2436, eye_width_ratio: 0.1889, eye_tilt: 3.1482, nose_width_ratio: 0.188, nose_length_ratio: 0.2326, mouth_width_ratio: 0.6314, jaw_width_ratio: 0.8894, jaw_angle: 136.76, face_width_to_height: 0.801, face_contour_taper: 1.0226 },
+    notes: "Primary signature: widest mouth_width_ratio in the dataset (uncontested) — warm, friendly wide-mouth archetype. Magnitude calibrated higher than other primaries to compensate for mouth_width's lower scoring importance weight. Secondary: kind upward eye tilt, longer snout." },
+  { id: "german_shepherd", name: "German Shepherd", species: "dog",
+    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1875, eye_tilt: 3.952, nose_width_ratio: 0.1868, nose_length_ratio: 0.2381, mouth_width_ratio: 0.4092, jaw_width_ratio: 0.8861, jaw_angle: 112.16, face_width_to_height: 0.4738, face_contour_taper: 1.0275 },
+    notes: "Primary signature: narrowest/most elongated face_width_to_height in the dataset (uncontested) — lupine long-face archetype. Secondary: alert eye tilt, longer muzzle." },
+  { id: "dachshund", name: "Dachshund", species: "dog",
+    features: { eye_spacing_ratio: 0.2472, eye_width_ratio: 0.1915, eye_tilt: -0.0671, nose_width_ratio: 0.1855, nose_length_ratio: 0.2761, mouth_width_ratio: 0.3991, jaw_width_ratio: 0.8763, jaw_angle: 128.64, face_width_to_height: 0.6701, face_contour_taper: 1.0275 },
+    notes: "Primary signature: longest nose_length_ratio in the dataset (uncontested) — elongated snout archetype. Secondary: narrow face, slightly narrow jaw." },
+  { id: "maine_coon", name: "Maine Coon", species: "cat",
+    features: { eye_spacing_ratio: 0.249, eye_width_ratio: 0.278, eye_tilt: 0.7367, nose_width_ratio: 0.1893, nose_length_ratio: 0.2136, mouth_width_ratio: 0.4042, jaw_width_ratio: 0.9124, jaw_angle: 142.65, face_width_to_height: 0.9155, face_contour_taper: 1.0226 },
+    notes: "Primary signature: largest eye_width_ratio in the dataset (uncontested) — large expressive-eyed archetype. Magnitude calibrated higher than other primaries to compensate for eye_width's lower scoring importance weight. Secondary: broad jaw, moderately round face." },
+  { id: "ragdoll", name: "Ragdoll", species: "cat",
+    features: { eye_spacing_ratio: 0.2507, eye_width_ratio: 0.1983, eye_tilt: -21.324, nose_width_ratio: 0.1868, nose_length_ratio: 0.2081, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8993, jaw_angle: 140.84, face_width_to_height: 0.8828, face_contour_taper: 1.003 },
+    notes: "Primary signature: only breed with downward eye_tilt (uncontested) — distinctive gentle, sleepy-eyed archetype. Secondary: large round eyes." },
+  { id: "exotic_shorthair", name: "Exotic", species: "cat",
+    features: { eye_spacing_ratio: 0.249, eye_width_ratio: 0.1996, eye_tilt: -1.6748, nose_width_ratio: 0.193, nose_length_ratio: 0.1891, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.9025, jaw_angle: 150.63, face_width_to_height: 1.1936, face_contour_taper: 1.003 },
+    notes: "Primary signature: roundest face_width_to_height in the dataset (uncontested) — brachycephalic round-face cat archetype. Secondary: flattened nose, larger eyes." },
+  { id: "devon_rex", name: "Devon Rex", species: "cat",
+    features: { eye_spacing_ratio: 0.249, eye_width_ratio: 0.1983, eye_tilt: 17.9744, nose_width_ratio: 0.1855, nose_length_ratio: 0.2081, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8829, jaw_angle: 139.48, face_width_to_height: 0.8664, face_contour_taper: 1.0618 },
+    notes: "Primary signature: most upward eye_tilt in the dataset (uncontested) — distinctive elfin upturned-eye archetype. Secondary: dramatic forehead-to-jaw taper, large eyes." },
+  { id: "abyssinian", name: "Abyssinian", species: "cat",
+    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1902, eye_tilt: 3.1482, nose_width_ratio: 0.1343, nose_length_ratio: 0.2163, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8763, jaw_angle: 136.17, face_width_to_height: 0.801, face_contour_taper: 1.0275 },
+    notes: "Primary signature: narrowest nose_width_ratio in the dataset (uncontested) — refined, fine-boned archetype. Magnitude calibrated higher than other primaries to compensate for nose_width's lower scoring importance weight. Secondary: alert eye tilt, narrow jaw." },
+];
+
+// ── Breed reference photos ──────────────────────────────────────────────────
+// 6 portrait variants per breed in images/{breed_id}_{1-6}.jpg (sibling folder).
+// A random variant is picked on every match render so the same breed never
+// looks identical on consecutive results.
+const BREED_VARIANT_COUNT = 6;
+function breedImageUrl(breedId) {
+  const n = Math.floor(Math.random() * BREED_VARIANT_COUNT) + 1;
+  return `images/${breedId}_${n}.jpg`;
+}
+
+// ── Caricature scoring constants (ported verbatim from scorer.html) ────────
+const HUMAN_AVG = {
+  eye_spacing_ratio: 0.2454, eye_width_ratio: 0.1902, eye_tilt: -1.6748,
+  nose_width_ratio: 0.1893, nose_length_ratio: 0.2163, mouth_width_ratio: 0.4092,
+  jaw_width_ratio: 0.8927, jaw_angle: 137.034, face_width_to_height: 0.8337, face_contour_taper: 1.0128,
+};
+const HUMAN_SD = {
+  eye_spacing_ratio: 0.0178, eye_width_ratio: 0.0135, eye_tilt: 8.0383,
+  nose_width_ratio: 0.0125, nose_length_ratio: 0.0272, mouth_width_ratio: 0.0505,
+  jaw_width_ratio: 0.0328, jaw_angle: 8.603, face_width_to_height: 0.1636, face_contour_taper: 0.0490,
+};
+const IMPORTANCE = {
+  nose_length_ratio: 1.0, face_width_to_height: 1.0, eye_tilt: 0.9,
+  face_contour_taper: 0.8, eye_spacing_ratio: 0.8, jaw_width_ratio: 0.7,
+  jaw_angle: 0.6, nose_width_ratio: 0.5, mouth_width_ratio: 0.5, eye_width_ratio: 0.4,
+};
+
+function caricatureScore(rawRatios, breeds) {
+  const R = Object.assign({}, rawRatios);
+  if (R.eye_tilt != null) {
+    if (R.eye_tilt > 90) R.eye_tilt -= 180;
+    if (R.eye_tilt < -90) R.eye_tilt += 180;
+  }
+
+  const HZ = {};
+  for (const feat of Object.keys(IMPORTANCE)) {
+    const v = R[feat];
+    if (v == null || !HUMAN_SD[feat]) continue;
+    HZ[feat] = (v - HUMAN_AVG[feat]) / HUMAN_SD[feat];
+  }
+
+  const results = breeds.map(breed => {
+    const pf = {};
+    for (const feat of Object.keys(IMPORTANCE)) {
+      const hZ = HZ[feat];
+      const bRaw = breed.features[feat];
+      if (hZ == null || bRaw == null || !HUMAN_SD[feat]) continue;
+      const bZ = (bRaw - HUMAN_AVG[feat]) / HUMAN_SD[feat];
+      const aligned = Math.sign(hZ) === Math.sign(bZ);
+      const signal = (aligned ? 1 : -1) * Math.abs(hZ) * Math.abs(bZ);
+      pf[feat] = {
+        human_raw: R[feat], breed_raw: bRaw,
+        human_z: Math.round(hZ * 10) / 10, breed_z: Math.round(bZ * 10) / 10,
+        aligned, signal: Math.round(signal * 100) / 100, importance: IMPORTANCE[feat],
+      };
+    }
+
+    const active = Object.entries(pf)
+      .filter(([, v]) => Math.abs(v.human_z) >= 0.5)
+      .sort((a, b) => Math.abs(b[1].signal) - Math.abs(a[1].signal));
+
+    let score = 50;
+    if (active.length > 0) {
+      const [, top] = active[0];
+      const rest = active.slice(1);
+      const winnerContrib = top.signal * top.importance;
+      let restScore = 0, restWeight = 0;
+      for (const [, v] of rest) { restScore += v.signal * v.importance; restWeight += v.importance; }
+      const restContrib = restWeight > 0 ? restScore / restWeight : 0;
+      const combined = winnerContrib * 0.5 + restContrib * 0.5;
+      score = Math.round(Math.max(0, Math.min(100, 50 + combined * 18)));
+    }
+
+    const matching = active.filter(([, v]) => v.aligned).slice(0, 3).map(([f]) => f);
+    const diverging = active.filter(([, v]) => !v.aligned).slice(0, 2).map(([f]) => f);
+
+    return { id: breed.id, name: breed.name, species: breed.species, score, matching, diverging, pf, notes: breed.notes || "" };
+  });
+
+  return results.sort((a, b) => b.score - a.score);
+}
+
+function buildPrompt(rawRatios, breeds) {
+  const ranked = caricatureScore(rawRatios, breeds);
+  const top = ranked[0];
+  const rest = ranked.slice(1);
+  const shown = rest.slice(0, 2); // only #2 and #3 are ever displayed — Phase 1 caps results at top 3
+
+  const distinctive = Object.entries(top.pf)
+    .sort((a, b) => Math.abs(b[1].human_z) - Math.abs(a[1].human_z))
+    .slice(0, 6)
+    .map(([f, v]) => {
+      const dir = v.human_z > 0 ? "above avg" : "below avg";
+      const status = v.aligned ? "aligned" : "opposite";
+      return "  " + f + ": " + v.human_raw + " (" + dir + " " + Math.abs(v.human_z).toFixed(1) + "s) breed=" + v.breed_raw + " [" + status + "]";
+    }).join("\n");
+
+  const runnersJson = shown.map(r =>
+    '    {"id":"' + r.id + '","name":"' + r.name + '","species":"' + r.species +
+    '","score":' + r.score + ',"one_liner":"One sentence why this breed placed here."}'
+  ).join(",\n");
+
+  return "You are the copy engine for the Face-to-Creature Matcher, a fun app that matches human faces to animals using caricature mapping.\n\n" +
+    "The ranking is FINAL — computed in JS. Do not change it.\n\n" +
+    "Top match: " + top.name + " (" + top.species + ") score=" + top.score + "/100\n" +
+    "Runners-up: " + rest.map(r => r.name + " (" + r.score + ")").join(", ") + "\n\n" +
+    "Distinctive features vs top match (s = sigma from human average):\n" + distinctive + "\n\n" +
+    "Strongest alignments: " + top.matching.join(", ") + "\n" +
+    "Mismatches: " + top.diverging.join(", ") + "\n" +
+    "Breed character: " + top.notes + "\n\n" +
+    "Write output card copy. Tell the person which of their features are extreme and why that maps to this breed.\n" +
+    "Tone: playful, cheeky, confident. Like a naturalist who just clocked your face.\n\n" +
+    "Return ONLY valid JSON, no preamble, no markdown fences:\n\n" +
+    '{"top_match":{"id":"' + top.id + '","name":"' + top.name + '","species":"' + top.species + '",' +
+    '"score":' + top.score + ',' +
+    '"headline":"One punchy sentence 10-16 words — name the match and the feature that clinched it.",' +
+    '"rationale":"2-3 sentences. Name which features are extreme on this face and how they match what defines this breed. Caricature framing.",' +
+    '"matching_features":' + JSON.stringify(top.matching) + ',' +
+    '"diverging_features":' + JSON.stringify(top.diverging) + '},' +
+    '"runners_up":[\n' + runnersJson + '\n]}';
+}
+
+// ── Radar chart (visual #2) — human vs top 3 breeds, shared z-score space ──
+const RADAR_FEATURES = ["eye_spacing_ratio","eye_width_ratio","eye_tilt","nose_width_ratio","nose_length_ratio","mouth_width_ratio","jaw_width_ratio","jaw_angle","face_width_to_height","face_contour_taper"];
+const RADAR_LABELS = ["Eye spacing","Eye width","Eye tilt","Nose width","Nose length","Mouth width","Jaw width","Jaw angle","Face shape","Face taper"];
+const RADAR_COLORS = [
+  { line: "#9a9a96", fill: "rgba(154,154,150,0.10)" },
+  { line: "#0F6E56", fill: "rgba(15,110,86,0.16)" },
+  { line: "#8a82e8", fill: "rgba(138,130,232,0.08)", dash: [5,3] },
+  { line: "#e0865c", fill: "rgba(224,134,92,0.06)", dash: [2,2] },
+];
+
+let radarChartInstance = null;
+
+function clamp3(v) { return Math.max(-3, Math.min(3, v)); }
+
+function renderRadarChart(ranked) {
+  const top3 = ranked.slice(0, 3);
+  const humanData = RADAR_FEATURES.map(f => clamp3(top3[0].pf[f] ? top3[0].pf[f].human_z : 0));
+
+  const datasets = [{
+    label: "You", data: humanData,
+    borderColor: RADAR_COLORS[0].line, backgroundColor: RADAR_COLORS[0].fill,
+    borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: RADAR_COLORS[0].line,
+  }];
+  top3.forEach((breed, i) => {
+    const c = RADAR_COLORS[i + 1];
+    datasets.push({
+      label: breed.name + " — " + breed.score + "%",
+      data: RADAR_FEATURES.map(f => clamp3(breed.pf[f] ? breed.pf[f].breed_z : 0)),
+      borderColor: c.line, backgroundColor: c.fill,
+      borderWidth: i === 0 ? 2 : 1.5, borderDash: c.dash || [],
+      pointRadius: i === 0 ? 3 : 2, pointBackgroundColor: c.line,
+    });
+  });
+
+  if (radarChartInstance) radarChartInstance.destroy();
+  const canvas = document.getElementById("radar-canvas");
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", "Radar chart comparing your facial feature z-scores against your top three breed matches across nine features");
+  radarChartInstance = new Chart(canvas, {
+    type: "radar",
+    data: { labels: RADAR_LABELS, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: -3, max: 3, ticks: { display: false },
+          grid: { color: "rgba(142,165,188,0.22)" },
+          angleLines: { color: "rgba(142,165,188,0.22)" },
+          pointLabels: { font: { size: 11 }, color: "#8ea5bc" },
+        }
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+
+  const legend = document.getElementById("radar-legend");
+  legend.innerHTML = datasets.map(d =>
+    '<span class="legend-item"><span class="legend-dot" style="background:' + d.borderColor + '"></span>' + d.label + "</span>"
+  ).join("");
+}
+
+// ── Side-by-side photo comparison (visual #3) ───────────────────────────────
+// fx/fy = feature position within the IMAGE itself (0-1), approximate for a
+// roughly front-facing portrait crop — not derived from per-image landmark
+// detection on the breed reference photo. Good enough for a fun visual.
+// side = which margin the label routes to. Fixed per feature rather than
+// computed from face geometry, so layout stays predictable across breeds.
+const FEATURE_ANNOTATIONS = {
+  eye_spacing_ratio: { fx: 0.50, fy: 0.37, side: "right", label: "Eye spacing" },
+  eye_width_ratio: { fx: 0.30, fy: 0.37, side: "left", label: "Eye width" },
+  eye_tilt: { fx: 0.70, fy: 0.34, side: "right", label: "Eye tilt" },
+  nose_width_ratio: { fx: 0.50, fy: 0.55, side: "left", label: "Nose width" },
+  nose_length_ratio: { fx: 0.50, fy: 0.50, side: "right", label: "Nose length" },
+  mouth_width_ratio: { fx: 0.50, fy: 0.71, side: "left", label: "Mouth width" },
+  jaw_width_ratio: { fx: 0.50, fy: 0.89, side: "right", label: "Jaw width" },
+  jaw_angle: { fx: 0.50, fy: 0.94, side: "left", label: "Jaw angle" },
+  face_width_to_height: { fx: 0.14, fy: 0.50, side: "left", label: "Face shape" },
+  face_contour_taper: { fx: 0.50, fy: 0.16, side: "right", label: "Face taper" },
+};
+
+// Coordinate space the callout SVG renders in. The image occupies the center
+// band; margins on either side hold the routed labels. .callout-img-wrap's
+// CSS inset (left:18.42%, width:63.16%) must match CALLOUT_IMG_X0/W below.
+const CALLOUT_VB_W = 380, CALLOUT_VB_H = 300, CALLOUT_IMG_X0 = 70, CALLOUT_IMG_W = 240;
+const LEFT_LABEL_X = 64, RIGHT_LABEL_X = 316;
+
+// Dots mark the precise feature point; labels never sit on top of the face —
+// a label like "Mouth width" placed directly on the mouth just obscures the
+// thing it's pointing at. Each label routes to a margin slot via a thin
+// elbowed leader line instead. Labels sharing a side are spaced evenly
+// top-to-bottom so they never overlap, regardless of the features' actual y.
+function buildCalloutMarkup(features) {
+  const pts = features.map(f => FEATURE_ANNOTATIONS[f]).filter(Boolean).map(a => ({
+    side: a.side, label: a.label,
+    px: CALLOUT_IMG_X0 + a.fx * CALLOUT_IMG_W,
+    py: a.fy * CALLOUT_VB_H,
+  }));
+
+  function withSlots(side) {
+    const list = pts.filter(p => p.side === side);
+    const n = list.length;
+    return list.map((p, i) => Object.assign({}, p, {
+      slotY: n === 1 ? p.py : (CALLOUT_VB_H * (i + 1)) / (n + 1),
+    }));
+  }
+  const left = withSlots("left");
+  const right = withSlots("right");
+  const all = left.concat(right);
+
+  let svg = '<svg class="callout-svg" viewBox="0 0 ' + CALLOUT_VB_W + " " + CALLOUT_VB_H + '" preserveAspectRatio="none">';
+  for (const p of all) {
+    const labelX = p.side === "left" ? LEFT_LABEL_X : RIGHT_LABEL_X;
+    const elbowX = p.side === "left" ? labelX + 14 : labelX - 14;
+    svg += '<polyline class="callout-line" points="' + p.px + "," + p.py + " " + elbowX + "," + p.py + " " + elbowX + "," + p.slotY + " " + labelX + "," + p.slotY + '" />';
+  }
+  for (const p of all) {
+    svg += '<circle class="callout-dot" cx="' + p.px + '" cy="' + p.py + '" r="2.2" />';
+  }
+  svg += "</svg>";
+
+  let labels = "";
+  for (const p of left) {
+    labels += '<div class="callout-label callout-label-left" style="top:' + (p.slotY / CALLOUT_VB_H * 100).toFixed(1) + '%">' + p.label + "</div>";
+  }
+  for (const p of right) {
+    labels += '<div class="callout-label callout-label-right" style="top:' + (p.slotY / CALLOUT_VB_H * 100).toFixed(1) + '%">' + p.label + "</div>";
+  }
+  return svg + labels;
+}
+
+function renderPhotoComparison(top) {
+  const wrap = document.getElementById("photo-compare");
+  const callouts = buildCalloutMarkup(top.matching);
+  const breedUrl = breedImageUrl(top.id);
+
+  const breedSlot = '<img src="' + breedUrl + '" alt="' + top.name + ' portrait" ' +
+    'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" />' +
+    '<div style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;padding:12px;text-align:center;background:#0b1120;">' +
+    '<div style="color:#f07878;font-size:10px;font-family:monospace;word-break:break-all;line-height:1.6">' +
+    '&#10005; Image not found<br>' + breedUrl + '</div>' +
+    '<div style="color:#6d8da8;font-size:9px;margin-top:8px">Place images/ folder next to the HTML file</div>' +
+    '</div>';
+
+  wrap.innerHTML =
+    '<div><div class="compare-label">You</div>' +
+    '<div class="callout-frame"><div class="callout-img-wrap"><img src="' + currentUserImageSrc + '" alt="Your photo" /></div>' + callouts + "</div></div>" +
+    '<div><div class="compare-label">' + top.name + "</div>" +
+    '<div class="callout-frame"><div class="callout-img-wrap">' + breedSlot + "</div></div></div>";
+
+  const hint = document.getElementById("compare-hint");
+  hint.textContent = top.matching.length
+    ? "Dots mark matched features on your face. Animal portrait is unmodified."
+    : "";
+}
+
+// ── Result card + runners-up rendering ──────────────────────────────────────
+
+function renderTopMatchCard(top) {
+  const container = document.getElementById("results-container");
+  const matching = top.matching_features || top.matching || [];
+  const diverging = top.diverging_features || top.diverging || [];
+  container.innerHTML =
+    '<div class="top-match"><div class="corner corner-tl"></div><div class="corner corner-br"></div>' +
+    '<div class="match-rank">#1 — Best match</div>' +
+    '<div class="match-name">' + top.name + "</div>" +
+    '<div class="match-species">' + top.species + "</div>" +
+    '<div class="score-row"><div class="score-label">Similarity</div>' +
+    '<div class="score-bar-wrap"><div class="score-bar" style="width:' + top.score + '%"></div></div>' +
+    '<div class="score-num">' + top.score + '%</div></div>' +
+    '<div class="rationale">' +
+    (top.headline
+      ? '<strong style="color:var(--accent);display:block;margin-bottom:8px;font-size:13px;">' + top.headline + "</strong>" + top.rationale
+      : '<span style="color:var(--muted)">Generating commentary…</span>') +
+    "</div>" +
+    '<div class="drivers">' +
+    matching.map(f => '<div class="driver-tag match">&#10003; ' + f.replace(/_/g, " ") + "</div>").join("") +
+    diverging.map(f => '<div class="driver-tag diff">&#8599; ' + f.replace(/_/g, " ") + "</div>").join("") +
+    "</div></div>";
+}
+
+// Only ranks #2 and #3 are ever passed in here — Phase 1 now caps displayed
+// matches at the top 3 total. Tier styling steps down in visual weight
+// (border, size, color) as rank drops, matching #1's fancier treatment above.
+function renderRunnersUp(list) {
+  const container = document.getElementById("runners-container");
+  if (!list || !list.length) { container.innerHTML = ""; return; }
+  const capped = list.slice(0, 2);
+  let html = '<div class="runners-grid">';
+  capped.forEach((r, i) => {
+    const tier = i === 0 ? "tier-2" : "tier-3";
+    const rank = i === 0 ? "#2" : "#3";
+    html +=
+      '<div class="rank-card ' + tier + '">' +
+      '<div class="rank-badge">' + rank + '</div>' +
+      '<div class="rank-name">' + r.name + "</div>" +
+      '<div class="rank-species">' + r.species + "</div>" +
+      '<div class="rank-score-row"><div class="rank-score-bar-wrap"><div class="rank-score-bar" style="width:' + r.score + '%"></div></div>' +
+      '<div class="rank-score-num">' + r.score + '%</div></div>' +
+      (r.one_liner ? '<div class="rank-note">' + r.one_liner + "</div>" : "") +
+      "</div>";
+  });
+  html += "</div>";
+  container.innerHTML = html;
+}
+
+// ── State + status helpers ──────────────────────────────────────────────────
+
+let faceLandmarker = null;
+let currentRatios = null;
+let currentUserImageSrc = null;
+
+function setDetectStatus(msg, cls) {
+  const el = document.getElementById("detect-status");
+  el.textContent = msg;
+  el.className = "status " + (cls || "");
+}
+function setMatchStatus(msg, cls) {
+  const el = document.getElementById("match-status");
+  el.textContent = msg;
+  el.className = "status " + (cls || "");
+}
+
+async function initMediaPipe() {
+  setDetectStatus("Loading face detection model…", "running");
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+  );
+  faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      delegate: "GPU",
+    },
+    outputFaceBlendshapes: false,
+    runningMode: "IMAGE",
+    numFaces: 1,
+  });
+  setDetectStatus("Model ready — drop a face photo to begin", "done");
+}
+
+async function processImage(file) {
+  setDetectStatus("Processing…", "running");
+  if (!faceLandmarker) { setDetectStatus("Model still loading — try again in a moment", "error"); return; }
+
+  if (currentUserImageSrc) URL.revokeObjectURL(currentUserImageSrc);
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  await img.decode();
+  currentUserImageSrc = img.src;
+
+  const imgCanvas = document.getElementById("img-canvas");
+  imgCanvas.width = img.naturalWidth;
+  imgCanvas.height = img.naturalHeight;
+  imgCanvas.getContext("2d").drawImage(img, 0, 0);
+
+  const result = faceLandmarker.detect(img);
+  if (!result.faceLandmarks || result.faceLandmarks.length === 0) {
+    setDetectStatus("No face detected — try a clearer front-facing photo", "error");
+    currentRatios = null;
+    return;
+  }
+
+  const landmarks = result.faceLandmarks[0];
+  const overlayCanvas = document.getElementById("overlay-canvas");
+  drawMeshOverlay(overlayCanvas, landmarks, img.naturalWidth, img.naturalHeight);
+
+  currentRatios = computeRatios(landmarks);
+  setDetectStatus("Face mapped — enter your API key and tap Match me", "done");
+
+  document.getElementById("results-section").style.display = "none";
+}
+
+// ── Match button flow ────────────────────────────────────────────────────────
+
+document.getElementById("match-btn").addEventListener("click", async () => {
+  if (!currentRatios) { setMatchStatus("Drop a photo first.", "error"); return; }
+  const apiKey = document.getElementById("api-key").value.trim();
+  if (!apiKey) { setMatchStatus("API key required.", "error"); return; }
+
+  const btn = document.getElementById("match-btn");
+  btn.disabled = true;
+  setMatchStatus("Computing caricature scores…", "running");
+
+  let ranked;
+  try { ranked = caricatureScore(currentRatios, PET_DATASET); }
+  catch (e) { setMatchStatus("Scoring error: " + e.message, "error"); btn.disabled = false; return; }
+
+  // Deterministic visuals render immediately — no need to wait on the API.
+  document.getElementById("results-section").style.display = "block";
+  renderTopMatchCard(ranked[0]);
+  renderRadarChart(ranked);
+  renderPhotoComparison(ranked[0]);
+  renderRunnersUp(ranked.slice(1, 3).map(r => ({ name: r.name, species: r.species, score: r.score, one_liner: null })));
+
+  setMatchStatus("Writing match copy with Claude…", "running");
+  let result, rawText;
+  try {
+    const prompt = buildPrompt(currentRatios, PET_DATASET);
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err && err.error ? err.error.message : "API error " + res.status);
+    }
+    const data = await res.json();
+    rawText = data.content && data.content[0] ? data.content[0].text : "";
+    const clean = rawText.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
+    result = JSON.parse(clean);
+  } catch (e) {
+    setMatchStatus("Copy generation failed (" + e.message + ") — scores above are still accurate.", "error");
+    btn.disabled = false;
+    return;
+  }
+
+  renderTopMatchCard(result.top_match);
+  renderRunnersUp(result.runners_up);
+  document.getElementById("raw-response").textContent = rawText;
+  setMatchStatus("Matched — " + result.top_match.name + " (" + result.top_match.score + "%)", "done");
+  btn.disabled = false;
+});
+
+document.getElementById("raw-toggle").addEventListener("click", () => {
+  const el = document.getElementById("raw-response");
+  const open = el.style.display === "block";
+  el.style.display = open ? "none" : "block";
+  document.getElementById("raw-toggle").textContent = open ? "Show raw response" : "Hide raw response";
+});
+
+// ── Upload wiring ────────────────────────────────────────────────────────────
+
+const dropZone = document.getElementById("drop-zone");
+const fileInput = document.getElementById("file-input");
+
+dropZone.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  if (fileInput.files[0]) processImage(fileInput.files[0]);
+});
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith("image/")) processImage(f);
+});
+
+initMediaPipe();
+</script>
+</body>
+</html>

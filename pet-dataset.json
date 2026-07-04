@@ -1,0 +1,229 @@
+{
+  "_meta": {
+    "version": "1.3.0",
+    "phase": 1,
+    "category": "house_pets",
+    "canonical_registry_version": "1.0.0",
+    "notes": "v1.3.0 \u2014 full breed rebalance. Breed feature values are now anchored directly to the real 26-face human MediaPipe calibration (HUMAN_AVG/HUMAN_SD), not a separate hand-estimated breed distribution. Each breed owns exactly one feature+direction as an uncontested 'primary' signature (no other breed competes closely on that axis in that direction); all other features are kept near human-average as light secondary texture. Primary magnitudes are calibrated via target_z = K / scoring_importance (K=2.2) so that every breed has an equal chance of winning the winner-take-most contest when its signature axis is the human's most distinctive feature, regardless of that feature's importance weight. Verified empirically against the 26-face calibration set: all 10 breeds win at least once, no breed exceeds 15% win share (previously French Bulldog 31%, Dachshund 27%, with German Shepherd, Maine Coon, Golden Retriever, Labrador, and Abyssinian winning 0-4% combined). v1.2.0 \u2014 pruned to 10 canonical features. jaw_angle remains in the dataset for reference but is excluded from active scoring (scale mismatch between MediaPipe human measurement ~88\u00b0 avg and prior breed estimates ~46\u00b0 avg \u2014 needs separate recalibration).",
+    "schema": {
+      "id": "string \u2014 canonical breed identifier",
+      "name": "string \u2014 display name",
+      "species": "dog | cat",
+      "features": "object \u2014 canonical ID keys, values are numeric | string | null",
+      "confidence": "object \u2014 per-feature confidence flag where relevant",
+      "notes": "string \u2014 breed-specific sourcing or scoring notes"
+    }
+  },
+  "breeds": [
+    {
+      "id": "french_bulldog",
+      "name": "French Bulldog",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2596,
+        "eye_width_ratio": 0.1943,
+        "eye_tilt": -0.871,
+        "nose_width_ratio": 0.1943,
+        "nose_length_ratio": 0.1565,
+        "mouth_width_ratio": 0.4193,
+        "jaw_width_ratio": 0.9025,
+        "jaw_angle": 26.0,
+        "face_width_to_height": 0.9973,
+        "face_contour_taper": 0.9981
+      },
+      "confidence": {
+        "nose_length_ratio": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: shortest nose_length_ratio in the dataset (uncontested) \u2014 brachycephalic flat-face archetype. Secondary: moderately wide/round face, wide-set eyes."
+    },
+    {
+      "id": "labrador_retriever",
+      "name": "Labrador Retriever",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2418,
+        "eye_width_ratio": 0.1875,
+        "eye_tilt": -0.0671,
+        "nose_width_ratio": 0.1918,
+        "nose_length_ratio": 0.2217,
+        "mouth_width_ratio": 0.4446,
+        "jaw_width_ratio": 0.9958,
+        "jaw_angle": 51.0,
+        "face_width_to_height": 0.801,
+        "face_contour_taper": 1.0177
+      },
+      "confidence": {
+        "jaw_width_ratio": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: widest jaw_width_ratio in the dataset (uncontested) \u2014 sturdy, friendly broad-jaw archetype. Magnitude calibrated higher than other primaries to compensate for jaw_width's lower scoring importance weight. Secondary: warm wide mouth."
+    },
+    {
+      "id": "golden_retriever",
+      "name": "Golden Retriever",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2436,
+        "eye_width_ratio": 0.1889,
+        "eye_tilt": 3.1482,
+        "nose_width_ratio": 0.188,
+        "nose_length_ratio": 0.2326,
+        "mouth_width_ratio": 0.6314,
+        "jaw_width_ratio": 0.8894,
+        "jaw_angle": 54.0,
+        "face_width_to_height": 0.801,
+        "face_contour_taper": 1.0226
+      },
+      "confidence": {
+        "mouth_width_ratio": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: widest mouth_width_ratio in the dataset (uncontested) \u2014 warm, friendly wide-mouth archetype. Magnitude calibrated higher than other primaries to compensate for mouth_width's lower scoring importance weight. Secondary: kind upward eye tilt, longer snout."
+    },
+    {
+      "id": "german_shepherd",
+      "name": "German Shepherd",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2418,
+        "eye_width_ratio": 0.1875,
+        "eye_tilt": 3.952,
+        "nose_width_ratio": 0.1868,
+        "nose_length_ratio": 0.2381,
+        "mouth_width_ratio": 0.4092,
+        "jaw_width_ratio": 0.8861,
+        "jaw_angle": 61.0,
+        "face_width_to_height": 0.4738,
+        "face_contour_taper": 1.0275
+      },
+      "confidence": {
+        "face_width_to_height": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: narrowest/most elongated face_width_to_height in the dataset (uncontested) \u2014 lupine long-face archetype. Secondary: alert eye tilt, longer muzzle."
+    },
+    {
+      "id": "dachshund",
+      "name": "Dachshund",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2472,
+        "eye_width_ratio": 0.1915,
+        "eye_tilt": -0.0671,
+        "nose_width_ratio": 0.1855,
+        "nose_length_ratio": 0.2761,
+        "mouth_width_ratio": 0.3991,
+        "jaw_width_ratio": 0.8763,
+        "jaw_angle": 64.0,
+        "face_width_to_height": 0.6701,
+        "face_contour_taper": 1.0275
+      },
+      "confidence": {
+        "nose_length_ratio": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: longest nose_length_ratio in the dataset (uncontested) \u2014 elongated snout archetype. Secondary: narrow face, slightly narrow jaw."
+    },
+    {
+      "id": "maine_coon",
+      "name": "Maine Coon",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.249,
+        "eye_width_ratio": 0.278,
+        "eye_tilt": 0.7367,
+        "nose_width_ratio": 0.1893,
+        "nose_length_ratio": 0.2136,
+        "mouth_width_ratio": 0.4042,
+        "jaw_width_ratio": 0.9124,
+        "jaw_angle": 46.0,
+        "face_width_to_height": 0.9155,
+        "face_contour_taper": 1.0226
+      },
+      "confidence": {
+        "eye_width_ratio": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: largest eye_width_ratio in the dataset (uncontested) \u2014 large expressive-eyed archetype. Magnitude calibrated higher than other primaries to compensate for eye_width's lower scoring importance weight. Secondary: broad jaw, moderately round face."
+    },
+    {
+      "id": "ragdoll",
+      "name": "Ragdoll",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.2507,
+        "eye_width_ratio": 0.1983,
+        "eye_tilt": -21.324,
+        "nose_width_ratio": 0.1868,
+        "nose_length_ratio": 0.2081,
+        "mouth_width_ratio": 0.3941,
+        "jaw_width_ratio": 0.8993,
+        "jaw_angle": 39.0,
+        "face_width_to_height": 0.8828,
+        "face_contour_taper": 1.003
+      },
+      "confidence": {
+        "eye_tilt": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: only breed with downward eye_tilt (uncontested) \u2014 distinctive gentle, sleepy-eyed archetype. Secondary: large round eyes."
+    },
+    {
+      "id": "exotic_shorthair",
+      "name": "Exotic",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.249,
+        "eye_width_ratio": 0.1996,
+        "eye_tilt": -1.6748,
+        "nose_width_ratio": 0.193,
+        "nose_length_ratio": 0.1891,
+        "mouth_width_ratio": 0.3941,
+        "jaw_width_ratio": 0.9025,
+        "jaw_angle": 24.0,
+        "face_width_to_height": 1.1936,
+        "face_contour_taper": 1.003
+      },
+      "confidence": {
+        "face_width_to_height": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: roundest face_width_to_height in the dataset (uncontested) \u2014 brachycephalic round-face cat archetype. Secondary: flattened nose, larger eyes."
+    },
+    {
+      "id": "devon_rex",
+      "name": "Devon Rex",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.249,
+        "eye_width_ratio": 0.1983,
+        "eye_tilt": 17.9744,
+        "nose_width_ratio": 0.1855,
+        "nose_length_ratio": 0.2081,
+        "mouth_width_ratio": 0.3941,
+        "jaw_width_ratio": 0.8829,
+        "jaw_angle": 36.0,
+        "face_width_to_height": 0.8664,
+        "face_contour_taper": 1.0618
+      },
+      "confidence": {
+        "eye_tilt": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: most upward eye_tilt in the dataset (uncontested) \u2014 distinctive elfin upturned-eye archetype. Secondary: dramatic forehead-to-jaw taper, large eyes."
+    },
+    {
+      "id": "abyssinian",
+      "name": "Abyssinian",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.2418,
+        "eye_width_ratio": 0.1902,
+        "eye_tilt": 3.1482,
+        "nose_width_ratio": 0.1343,
+        "nose_length_ratio": 0.2163,
+        "mouth_width_ratio": 0.3941,
+        "jaw_width_ratio": 0.8763,
+        "jaw_angle": 59.0,
+        "face_width_to_height": 0.801,
+        "face_contour_taper": 1.0275
+      },
+      "confidence": {
+        "nose_width_ratio": "high \u2014 uncontested primary signature"
+      },
+      "notes": "Primary signature: narrowest nose_width_ratio in the dataset (uncontested) \u2014 refined, fine-boned archetype. Magnitude calibrated higher than other primaries to compensate for nose_width's lower scoring importance weight. Secondary: alert eye tilt, narrow jaw."
+    }
+  ]
+}
