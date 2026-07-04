@@ -32,9 +32,7 @@
     canvas { width: 100%; border-radius: 4px; display: block; }
     #overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 
-    label[for="api-key"] { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-    input[type="password"] { width: 100%; background: #0d1526; border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: inherit; font-size: 11px; padding: 10px 12px; outline: none; transition: border-color .15s; }
-    input[type="password"]:focus { border-color: var(--accent); }
+    
     .hint { font-size: 10px; color: var(--dim); margin-top: 6px; line-height: 1.5; }
     .hint a { color: var(--accent); text-decoration: none; }
     #match-btn { width: 100%; margin-top: 16px; background: none; border: 1px solid var(--accent); color: var(--accent); font-family: inherit; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 11px; border-radius: 5px; cursor: pointer; transition: background .15s, color .15s; }
@@ -141,9 +139,7 @@
 
   <div class="panel">
     <div class="panel-title">Match settings</div>
-    <label for="api-key">Anthropic API key</label>
-    <input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
-    <div class="hint">Key stays in your browser — only sent to <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.</div>
+    
     <button id="match-btn">Match me &rarr;</button>
     <div class="status" id="match-status">Drop a photo, then tap Match me.</div>
   </div>
@@ -720,7 +716,7 @@ async function processImage(file) {
   drawMeshOverlay(overlayCanvas, landmarks, img.naturalWidth, img.naturalHeight);
 
   currentRatios = computeRatios(landmarks);
-  setDetectStatus("Face mapped — enter your API key and tap Match me", "done");
+  setDetectStatus("Face mapped — tap Match me", "done");
 
   document.getElementById("results-section").style.display = "none";
 }
@@ -729,9 +725,6 @@ async function processImage(file) {
 
 document.getElementById("match-btn").addEventListener("click", async () => {
   if (!currentRatios) { setMatchStatus("Drop a photo first.", "error"); return; }
-  const apiKey = document.getElementById("api-key").value.trim();
-  if (!apiKey) { setMatchStatus("API key required.", "error"); return; }
-
   const btn = document.getElementById("match-btn");
   btn.disabled = true;
   setMatchStatus("Computing caricature scores…", "running");
@@ -751,13 +744,10 @@ document.getElementById("match-btn").addEventListener("click", async () => {
   let result, rawText;
   try {
     const prompt = buildPrompt(currentRatios, PET_DATASET);
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("https://wild-term-d363.turnbullr67.workers.dev/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
