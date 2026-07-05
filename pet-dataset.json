@@ -1,19 +1,5 @@
 {
-  "_meta": {
-    "version": "1.3.0",
-    "phase": 1,
-    "category": "house_pets",
-    "canonical_registry_version": "1.0.0",
-    "notes": "v1.3.0 \u2014 full breed rebalance. Breed feature values are now anchored directly to the real 26-face human MediaPipe calibration (HUMAN_AVG/HUMAN_SD), not a separate hand-estimated breed distribution. Each breed owns exactly one feature+direction as an uncontested 'primary' signature (no other breed competes closely on that axis in that direction); all other features are kept near human-average as light secondary texture. Primary magnitudes are calibrated via target_z = K / scoring_importance (K=2.2) so that every breed has an equal chance of winning the winner-take-most contest when its signature axis is the human's most distinctive feature, regardless of that feature's importance weight. Verified empirically against the 26-face calibration set: all 10 breeds win at least once, no breed exceeds 15% win share (previously French Bulldog 31%, Dachshund 27%, with German Shepherd, Maine Coon, Golden Retriever, Labrador, and Abyssinian winning 0-4% combined). v1.2.0 \u2014 pruned to 10 canonical features. jaw_angle remains in the dataset for reference but is excluded from active scoring (scale mismatch between MediaPipe human measurement ~88\u00b0 avg and prior breed estimates ~46\u00b0 avg \u2014 needs separate recalibration).",
-    "schema": {
-      "id": "string \u2014 canonical breed identifier",
-      "name": "string \u2014 display name",
-      "species": "dog | cat",
-      "features": "object \u2014 canonical ID keys, values are numeric | string | null",
-      "confidence": "object \u2014 per-feature confidence flag where relevant",
-      "notes": "string \u2014 breed-specific sourcing or scoring notes"
-    }
-  },
+  "version": "2.0.0",
   "breeds": [
     {
       "id": "french_bulldog",
@@ -31,10 +17,7 @@
         "face_width_to_height": 0.9973,
         "face_contour_taper": 0.9981
       },
-      "confidence": {
-        "nose_length_ratio": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: shortest nose_length_ratio in the dataset (uncontested) \u2014 brachycephalic flat-face archetype. Secondary: moderately wide/round face, wide-set eyes."
+      "notes": "Primary signature: shortest nose_length_ratio \u2014 brachycephalic flat-face archetype."
     },
     {
       "id": "labrador_retriever",
@@ -52,10 +35,7 @@
         "face_width_to_height": 0.801,
         "face_contour_taper": 1.0177
       },
-      "confidence": {
-        "jaw_width_ratio": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: widest jaw_width_ratio in the dataset (uncontested) \u2014 sturdy, friendly broad-jaw archetype. Magnitude calibrated higher than other primaries to compensate for jaw_width's lower scoring importance weight. Secondary: warm wide mouth."
+      "notes": "Primary signature: widest jaw_width_ratio \u2014 sturdy broad-jaw archetype."
     },
     {
       "id": "golden_retriever",
@@ -73,10 +53,7 @@
         "face_width_to_height": 0.801,
         "face_contour_taper": 1.0226
       },
-      "confidence": {
-        "mouth_width_ratio": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: widest mouth_width_ratio in the dataset (uncontested) \u2014 warm, friendly wide-mouth archetype. Magnitude calibrated higher than other primaries to compensate for mouth_width's lower scoring importance weight. Secondary: kind upward eye tilt, longer snout."
+      "notes": "Primary signature: widest mouth_width_ratio \u2014 warm wide-mouth archetype."
     },
     {
       "id": "german_shepherd",
@@ -94,10 +71,7 @@
         "face_width_to_height": 0.4738,
         "face_contour_taper": 1.0275
       },
-      "confidence": {
-        "face_width_to_height": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: narrowest/most elongated face_width_to_height in the dataset (uncontested) \u2014 lupine long-face archetype. Secondary: alert eye tilt, longer muzzle."
+      "notes": "Primary signature: narrowest face_width_to_height \u2014 lupine elongated-face archetype."
     },
     {
       "id": "dachshund",
@@ -115,10 +89,7 @@
         "face_width_to_height": 0.6701,
         "face_contour_taper": 1.0275
       },
-      "confidence": {
-        "nose_length_ratio": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: longest nose_length_ratio in the dataset (uncontested) \u2014 elongated snout archetype. Secondary: narrow face, slightly narrow jaw."
+      "notes": "Primary signature: longest nose_length_ratio \u2014 elongated snout archetype."
     },
     {
       "id": "maine_coon",
@@ -136,10 +107,7 @@
         "face_width_to_height": 0.9155,
         "face_contour_taper": 1.0226
       },
-      "confidence": {
-        "eye_width_ratio": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: largest eye_width_ratio in the dataset (uncontested) \u2014 large expressive-eyed archetype. Magnitude calibrated higher than other primaries to compensate for eye_width's lower scoring importance weight. Secondary: broad jaw, moderately round face."
+      "notes": "Primary signature: largest eye_width_ratio \u2014 large expressive-eyed archetype."
     },
     {
       "id": "ragdoll",
@@ -157,10 +125,7 @@
         "face_width_to_height": 0.8828,
         "face_contour_taper": 1.003
       },
-      "confidence": {
-        "eye_tilt": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: only breed with downward eye_tilt (uncontested) \u2014 distinctive gentle, sleepy-eyed archetype. Secondary: large round eyes."
+      "notes": "Primary signature: most downward eye_tilt \u2014 gentle sleepy-eyed archetype."
     },
     {
       "id": "exotic_shorthair",
@@ -178,10 +143,7 @@
         "face_width_to_height": 1.1936,
         "face_contour_taper": 1.003
       },
-      "confidence": {
-        "face_width_to_height": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: roundest face_width_to_height in the dataset (uncontested) \u2014 brachycephalic round-face cat archetype. Secondary: flattened nose, larger eyes."
+      "notes": "Primary signature: roundest face_width_to_height \u2014 brachycephalic round-face cat archetype."
     },
     {
       "id": "devon_rex",
@@ -199,10 +161,7 @@
         "face_width_to_height": 0.8664,
         "face_contour_taper": 1.0618
       },
-      "confidence": {
-        "eye_tilt": "high \u2014 uncontested primary signature"
-      },
-      "notes": "Primary signature: most upward eye_tilt in the dataset (uncontested) \u2014 distinctive elfin upturned-eye archetype. Secondary: dramatic forehead-to-jaw taper, large eyes."
+      "notes": "Primary signature: most upward eye_tilt \u2014 elfin upturned-eye archetype."
     },
     {
       "id": "abyssinian",
@@ -220,12 +179,727 @@
         "face_width_to_height": 0.801,
         "face_contour_taper": 1.0275
       },
-      "confidence": {
-        "nose_width_ratio": "high \u2014 uncontested primary signature"
+      "notes": "Primary signature: narrowest nose_width_ratio \u2014 refined fine-boned archetype."
+    },
+    {
+      "id": "poodle_standard",
+      "name": "Poodle (Standard)",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.24896,
+        "eye_width_ratio": 0.1848,
+        "eye_tilt": 0.73669,
+        "nose_width_ratio": 0.18305,
+        "nose_length_ratio": 0.25438,
+        "mouth_width_ratio": 0.39405,
+        "jaw_width_ratio": 0.87302,
+        "jaw_angle": 127.5707,
+        "face_width_to_height": 0.63738,
+        "face_contour_taper": 1.0324
       },
-      "notes": "Primary signature: narrowest nose_width_ratio in the dataset (uncontested) \u2014 refined, fine-boned archetype. Magnitude calibrated higher than other primaries to compensate for nose_width's lower scoring importance weight. Secondary: alert eye tilt, narrow jaw."
+      "notes": "Features an elongated muzzle and a lean, narrow jaw structure that tapers into a tight chin angle."
+    },
+    {
+      "id": "bulldog_english",
+      "name": "Bulldog (English)",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.27388,
+        "eye_width_ratio": 0.19695,
+        "eye_tilt": -8.10544,
+        "nose_width_ratio": 0.2168,
+        "nose_length_ratio": 0.15918,
+        "mouth_width_ratio": 0.50015,
+        "jaw_width_ratio": 0.96158,
+        "jaw_angle": 154.24,
+        "face_width_to_height": 1.17726,
+        "face_contour_taper": 0.9295
+      },
+      "notes": "Defined by an extremely compressed snout, massive wide-set jaw, and an exceptionally broad, flat face."
+    },
+    {
+      "id": "beagle",
+      "name": "Beagle",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.25252,
+        "eye_width_ratio": 0.1983,
+        "eye_tilt": -16.1437,
+        "nose_width_ratio": 0.2006,
+        "nose_length_ratio": 0.23806,
+        "mouth_width_ratio": 0.4193,
+        "jaw_width_ratio": 0.90254,
+        "jaw_angle": 140.4752,
+        "face_width_to_height": 0.86642,
+        "face_contour_taper": 1.003
+      },
+      "notes": "Maintains a highly balanced, moderate facial geometry that sits comfortably close to average human proportions."
+    },
+    {
+      "id": "rottweiler",
+      "name": "Rottweiler",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.25964,
+        "eye_width_ratio": 0.1875,
+        "eye_tilt": -4.89012,
+        "nose_width_ratio": 0.20805,
+        "nose_length_ratio": 0.23262,
+        "mouth_width_ratio": 0.46475,
+        "jaw_width_ratio": 0.95174,
+        "jaw_angle": 149.3385,
+        "face_width_to_height": 1.04638,
+        "face_contour_taper": 0.954
+      },
+      "notes": "Characterized by a heavy, wide jaw structure and a broad nose bridge paired with a muscular, square facial outline."
+    },
+    {
+      "id": "siberian_husky",
+      "name": "Siberian Husky",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2365,
+        "eye_width_ratio": 0.201,
+        "eye_tilt": 11.18648,
+        "nose_width_ratio": 0.1918,
+        "nose_length_ratio": 0.24622,
+        "mouth_width_ratio": 0.40415,
+        "jaw_width_ratio": 0.90582,
+        "jaw_angle": 138.7546,
+        "face_width_to_height": 0.78462,
+        "face_contour_taper": 1.0422
+      },
+      "notes": "Features piercing, almond-shaped eyes with a distinctive upward tilt and a moderately long, wolf-like muzzle."
+    },
+    {
+      "id": "doberman_pinscher",
+      "name": "Doberman Pinscher",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.23472,
+        "eye_width_ratio": 0.18345,
+        "eye_tilt": 2.34435,
+        "nose_width_ratio": 0.1793,
+        "nose_length_ratio": 0.27342,
+        "mouth_width_ratio": 0.3789,
+        "jaw_width_ratio": 0.85662,
+        "jaw_angle": 123.2692,
+        "face_width_to_height": 0.52286,
+        "face_contour_taper": 1.052
+      },
+      "notes": "Presents a highly elongated, wedge-shaped head with a long snout, narrow jaw line, and closely set eyes."
+    },
+    {
+      "id": "shih_tzu",
+      "name": "Shih Tzu",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.27922,
+        "eye_width_ratio": 0.2145,
+        "eye_tilt": -0.06714,
+        "nose_width_ratio": 0.20305,
+        "nose_length_ratio": 0.16462,
+        "mouth_width_ratio": 0.4294,
+        "jaw_width_ratio": 0.93206,
+        "jaw_angle": 149.0782,
+        "face_width_to_height": 1.11182,
+        "face_contour_taper": 0.9589
+      },
+      "notes": "Distinguished by very wide-set, large round eyes on a shortened, flat brachycephalic facial plane."
+    },
+    {
+      "id": "pomeranian",
+      "name": "Pomeranian",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.26142,
+        "eye_width_ratio": 0.21045,
+        "eye_tilt": 4.75584,
+        "nose_width_ratio": 0.1743,
+        "nose_length_ratio": 0.19454,
+        "mouth_width_ratio": 0.36375,
+        "jaw_width_ratio": 0.85334,
+        "jaw_angle": 121.5486,
+        "face_width_to_height": 0.96458,
+        "face_contour_taper": 1.0863
+      },
+      "notes": "Displays a foxy, wedge-like countenance with a tiny button nose, large expressive eyes, and a highly tapered chin."
+    },
+    {
+      "id": "border_collie",
+      "name": "Border Collie",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.24184,
+        "eye_width_ratio": 0.19425,
+        "eye_tilt": 1.54052,
+        "nose_width_ratio": 0.1868,
+        "nose_length_ratio": 0.2435,
+        "mouth_width_ratio": 0.3991,
+        "jaw_width_ratio": 0.88286,
+        "jaw_angle": 132.7325,
+        "face_width_to_height": 0.71918,
+        "face_contour_taper": 1.0275
+      },
+      "notes": "Possesses a lean, alert facial structure with a moderately long muzzle and well-proportioned features."
+    },
+    {
+      "id": "boxer",
+      "name": "Boxer",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.265,
+        "eye_width_ratio": 0.1929,
+        "eye_tilt": -4.08629,
+        "nose_width_ratio": 0.2118,
+        "nose_length_ratio": 0.17278,
+        "mouth_width_ratio": 0.48495,
+        "jaw_width_ratio": 0.94518,
+        "jaw_angle": 147.3576,
+        "face_width_to_height": 1.06274,
+        "face_contour_taper": 0.9442
+      },
+      "notes": "Combines a shortened, blunt snout with a wide mouth and a strong, square jawline."
+    },
+    {
+      "id": "chihuahua",
+      "name": "Chihuahua",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.28456,
+        "eye_width_ratio": 0.21855,
+        "eye_tilt": 3.14818,
+        "nose_width_ratio": 0.17055,
+        "nose_length_ratio": 0.18094,
+        "mouth_width_ratio": 0.3385,
+        "jaw_width_ratio": 0.8435,
+        "jaw_angle": 120.6883,
+        "face_width_to_height": 1.09546,
+        "face_contour_taper": 1.1206
+      },
+      "notes": "Defined by an apple-domed skull creating an extreme top-heavy taper, massive oversized eyes, and a tiny pointed muzzle."
+    },
+    {
+      "id": "great_dane",
+      "name": "Great Dane",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.23116,
+        "eye_width_ratio": 0.1794,
+        "eye_tilt": -5.69395,
+        "nose_width_ratio": 0.2043,
+        "nose_length_ratio": 0.27614,
+        "mouth_width_ratio": 0.4496,
+        "jaw_width_ratio": 0.9419,
+        "jaw_angle": 129.2913,
+        "face_width_to_height": 0.53922,
+        "face_contour_taper": 0.9491
+      },
+      "notes": "Features a deeply rectangular, elongated head with a remarkably long snout, narrow-set eyes, and heavy, squared jowls."
+    },
+    {
+      "id": "cocker_spaniel",
+      "name": "Cocker Spaniel",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2543,
+        "eye_width_ratio": 0.2064,
+        "eye_tilt": -13.73225,
+        "nose_width_ratio": 0.1943,
+        "nose_length_ratio": 0.24078,
+        "mouth_width_ratio": 0.42435,
+        "jaw_width_ratio": 0.89926,
+        "jaw_angle": 134.4531,
+        "face_width_to_height": 0.76826,
+        "face_contour_taper": 0.9883
+      },
+      "notes": "Distinctive for its large, soulful eyes that exhibit a noticeable downward tilt at the outer corners."
+    },
+    {
+      "id": "maltese",
+      "name": "Maltese",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.27032,
+        "eye_width_ratio": 0.2118,
+        "eye_tilt": -0.87097,
+        "nose_width_ratio": 0.1818,
+        "nose_length_ratio": 0.18366,
+        "mouth_width_ratio": 0.3688,
+        "jaw_width_ratio": 0.86646,
+        "jaw_angle": 132.7325,
+        "face_width_to_height": 1.01366,
+        "face_contour_taper": 1.0471
+      },
+      "notes": "Presents a round, compact head with button-like, wide-set eyes and a short, fine muzzle."
+    },
+    {
+      "id": "shar_pei",
+      "name": "Shar Pei",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.22582,
+        "eye_width_ratio": 0.1659,
+        "eye_tilt": -14.53608,
+        "nose_width_ratio": 0.21805,
+        "nose_length_ratio": 0.2027,
+        "mouth_width_ratio": 0.50515,
+        "jaw_width_ratio": 0.96486,
+        "jaw_angle": 152.5194,
+        "face_width_to_height": 1.0791,
+        "face_contour_taper": 0.9197
+      },
+      "notes": "Famous for its sunken, narrow eyes, heavily padded 'hippopotamus' muzzle, and an extremely wide, thick jaw."
+    },
+    {
+      "id": "dalmatian",
+      "name": "Dalmatian",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.24362,
+        "eye_width_ratio": 0.18615,
+        "eye_tilt": -0.87097,
+        "nose_width_ratio": 0.19305,
+        "nose_length_ratio": 0.25166,
+        "mouth_width_ratio": 0.40415,
+        "jaw_width_ratio": 0.88614,
+        "jaw_angle": 130.1516,
+        "face_width_to_height": 0.65374,
+        "face_contour_taper": 1.0226
+      },
+      "notes": "Features a clean-cut, elongated head with a long muzzle, moderate eye spacing, and a well-defined profile."
+    },
+    {
+      "id": "greyhound",
+      "name": "Greyhound",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.22048,
+        "eye_width_ratio": 0.174,
+        "eye_tilt": 3.95161,
+        "nose_width_ratio": 0.16555,
+        "nose_length_ratio": 0.2598,
+        "mouth_width_ratio": 0.33345,
+        "jaw_width_ratio": 0.82382,
+        "jaw_angle": 118.1074,
+        "face_width_to_height": 0.5065,
+        "face_contour_taper": 1.1059
+      },
+      "notes": "Possesses an aerodynamic, exceptionally narrow head with a maximally elongated snout and an acute, sharp jaw angle."
+    },
+    {
+      "id": "chow_chow",
+      "name": "Chow Chow",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.22404,
+        "eye_width_ratio": 0.16725,
+        "eye_tilt": -12.92842,
+        "nose_width_ratio": 0.21305,
+        "nose_length_ratio": 0.19726,
+        "mouth_width_ratio": 0.49,
+        "jaw_width_ratio": 0.96814,
+        "jaw_angle": 153.3797,
+        "face_width_to_height": 1.12818,
+        "face_contour_taper": 0.9246
+      },
+      "notes": "Characterized by a broad skull, heavy scowl, small deep-set eyes, and a very wide jaw masked by massive fur."
+    },
+    {
+      "id": "weimaraner",
+      "name": "Weimaraner",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.23828,
+        "eye_width_ratio": 0.18345,
+        "eye_tilt": -6.49778,
+        "nose_width_ratio": 0.1918,
+        "nose_length_ratio": 0.26528,
+        "mouth_width_ratio": 0.39405,
+        "jaw_width_ratio": 0.87958,
+        "jaw_angle": 127.5707,
+        "face_width_to_height": 0.60466,
+        "face_contour_taper": 1.0275
+      },
+      "notes": "Displays an aristocratic, elongated head shape with a strong, long nose bridge and moderately narrow proportions."
+    },
+    {
+      "id": "australian_shepherd",
+      "name": "Australian Shepherd",
+      "species": "dog",
+      "features": {
+        "eye_spacing_ratio": 0.2276,
+        "eye_width_ratio": 0.19695,
+        "eye_tilt": 10.3826,
+        "nose_width_ratio": 0.19055,
+        "nose_length_ratio": 0.23806,
+        "mouth_width_ratio": 0.41425,
+        "jaw_width_ratio": 0.89926,
+        "jaw_angle": 137.8943,
+        "face_width_to_height": 0.80098,
+        "face_contour_taper": 1.0177
+      },
+      "notes": "Exhibits highly balanced and moderate facial architecture with a standard muzzle length and well-set eyes."
+    },
+    {
+      "id": "siamese",
+      "name": "Siamese",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.22226,
+        "eye_width_ratio": 0.201,
+        "eye_tilt": 13.59797,
+        "nose_width_ratio": 0.1693,
+        "nose_length_ratio": 0.24894,
+        "mouth_width_ratio": 0.3436,
+        "jaw_width_ratio": 0.83366,
+        "jaw_angle": 118.9677,
+        "face_width_to_height": 0.57194,
+        "face_contour_taper": 1.1108
+      },
+      "notes": "Distinguished by a highly angular, wedge-shaped head with strikingly large, slanted, almond eyes."
+    },
+    {
+      "id": "persian",
+      "name": "Persian",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.28634,
+        "eye_width_ratio": 0.2093,
+        "eye_tilt": -5.69395,
+        "nose_width_ratio": 0.20805,
+        "nose_length_ratio": 0.15374,
+        "mouth_width_ratio": 0.4496,
+        "jaw_width_ratio": 0.94846,
+        "jaw_angle": 153.3797,
+        "face_width_to_height": 1.20998,
+        "face_contour_taper": 0.9393
+      },
+      "notes": "Features an extremely shortened, indented nose alongside wide-set eyes on an intensely round, flat face."
+    },
+    {
+      "id": "british_shorthair",
+      "name": "British Shorthair",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.26676,
+        "eye_width_ratio": 0.20255,
+        "eye_tilt": -2.47863,
+        "nose_width_ratio": 0.1993,
+        "nose_length_ratio": 0.19182,
+        "mouth_width_ratio": 0.45465,
+        "jaw_width_ratio": 0.9583,
+        "jaw_angle": 151.6591,
+        "face_width_to_height": 1.14454,
+        "face_contour_taper": 0.954
+      },
+      "notes": "Defined by prominent, chubby cheeks that create a massive, wide jawline and an intensely circular head shape."
+    },
+    {
+      "id": "scottish_fold",
+      "name": "Scottish Fold",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.2721,
+        "eye_width_ratio": 0.20795,
+        "eye_tilt": -1.6748,
+        "nose_width_ratio": 0.1943,
+        "nose_length_ratio": 0.18638,
+        "mouth_width_ratio": 0.4193,
+        "jaw_width_ratio": 0.93534,
+        "jaw_angle": 149.9385,
+        "face_width_to_height": 1.17726,
+        "face_contour_taper": 0.9834
+      },
+      "notes": "Possesses a globular, round head geometry emphasized by wide-set eyes and folded ears that accentuate face roundness."
+    },
+    {
+      "id": "bengal",
+      "name": "Bengal",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.24184,
+        "eye_width_ratio": 0.19965,
+        "eye_tilt": 7.16733,
+        "nose_width_ratio": 0.1968,
+        "nose_length_ratio": 0.23262,
+        "mouth_width_ratio": 0.42435,
+        "jaw_width_ratio": 0.9091,
+        "jaw_angle": 137.8943,
+        "face_width_to_height": 0.78462,
+        "face_contour_taper": 1.0324
+      },
+      "notes": "Displays wild cat aesthetics with a robust muzzle, wide nose bridge, and moderately upright, oval eyes."
+    },
+    {
+      "id": "sphynx",
+      "name": "Sphynx",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.27744,
+        "eye_width_ratio": 0.2199,
+        "eye_tilt": 15.20563,
+        "nose_width_ratio": 0.17555,
+        "nose_length_ratio": 0.22446,
+        "mouth_width_ratio": 0.36375,
+        "jaw_width_ratio": 0.84678,
+        "jaw_angle": 118.1074,
+        "face_width_to_height": 0.76826,
+        "face_contour_taper": 1.1304
+      },
+      "notes": "Striking for its massive, wide-open lemon eyes, distinct cheekbone flare, and a sharply tapering, narrow chin."
+    },
+    {
+      "id": "norwegian_forest_cat",
+      "name": "Norwegian Forest Cat",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.24006,
+        "eye_width_ratio": 0.1983,
+        "eye_tilt": 7.97116,
+        "nose_width_ratio": 0.19555,
+        "nose_length_ratio": 0.24078,
+        "mouth_width_ratio": 0.3991,
+        "jaw_width_ratio": 0.91894,
+        "jaw_angle": 130.1516,
+        "face_width_to_height": 0.5883,
+        "face_contour_taper": 1.0716
+      },
+      "notes": "Features an equilateral triangular head shape with an even, straight nose line and large, almond-shaped eyes."
+    },
+    {
+      "id": "turkish_angora",
+      "name": "Turkish Angora",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.25074,
+        "eye_width_ratio": 0.20505,
+        "eye_tilt": 10.38265,
+        "nose_width_ratio": 0.17805,
+        "nose_length_ratio": 0.2299,
+        "mouth_width_ratio": 0.37385,
+        "jaw_width_ratio": 0.85662,
+        "jaw_angle": 123.2692,
+        "face_width_to_height": 0.71918,
+        "face_contour_taper": 1.0814
+      },
+      "notes": "Presents a fine-boned, delicate face with a gentle chin taper and large, expressive eyes slanted upwards."
+    },
+    {
+      "id": "burmese",
+      "name": "Burmese",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.26142,
+        "eye_width_ratio": 0.2064,
+        "eye_tilt": 0.73669,
+        "nose_width_ratio": 0.19555,
+        "nose_length_ratio": 0.19454,
+        "mouth_width_ratio": 0.4395,
+        "jaw_width_ratio": 0.92878,
+        "jaw_angle": 147.3576,
+        "face_width_to_height": 1.0791,
+        "face_contour_taper": 0.9883
+      },
+      "notes": "Shows a compact, pleasingly rounded head with a short muzzle and wide, prominent jaw architecture."
+    },
+    {
+      "id": "russian_blue",
+      "name": "Russian Blue",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.24896,
+        "eye_width_ratio": 0.201,
+        "eye_tilt": 4.75584,
+        "nose_width_ratio": 0.18055,
+        "nose_length_ratio": 0.22718,
+        "mouth_width_ratio": 0.3991,
+        "jaw_width_ratio": 0.91238,
+        "jaw_angle": 132.7325,
+        "face_width_to_height": 0.86642,
+        "face_contour_taper": 1.0471
+      },
+      "notes": "Characterized by a broad, flat skull and a prominent whisker pad structure that creates a distinct seven-sided face outline."
+    },
+    {
+      "id": "oriental_shorthair",
+      "name": "Oriental Shorthair",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.20802,
+        "eye_width_ratio": 0.21045,
+        "eye_tilt": 16.81329,
+        "nose_width_ratio": 0.16305,
+        "nose_length_ratio": 0.25982,
+        "mouth_width_ratio": 0.3183,
+        "jaw_width_ratio": 0.81726,
+        "jaw_angle": 116.3868,
+        "face_width_to_height": 0.5065,
+        "face_contour_taper": 1.1353
+      },
+      "notes": "Exhibits an exaggeratedly long, narrow wedge profile with closely set, heavily slanted oriental eyes."
+    },
+    {
+      "id": "himalayan",
+      "name": "Himalayan",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.28278,
+        "eye_width_ratio": 0.2064,
+        "eye_tilt": -6.49778,
+        "nose_width_ratio": 0.20555,
+        "nose_length_ratio": 0.15646,
+        "mouth_width_ratio": 0.44455,
+        "jaw_width_ratio": 0.94518,
+        "jaw_angle": 152.5194,
+        "face_width_to_height": 1.19362,
+        "face_contour_taper": 0.9442
+      },
+      "notes": "Shares the extreme round, squashed-face anatomy of the Persian, featuring a high nose break and wide-set eyes."
+    },
+    {
+      "id": "tonkinese",
+      "name": "Tonkinese",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.24006,
+        "eye_width_ratio": 0.20235,
+        "eye_tilt": 7.9712,
+        "nose_width_ratio": 0.18305,
+        "nose_length_ratio": 0.22174,
+        "mouth_width_ratio": 0.38395,
+        "jaw_width_ratio": 0.87958,
+        "jaw_angle": 130.1516,
+        "face_width_to_height": 0.7028,
+        "face_contour_taper": 1.0422
+      },
+      "notes": "Blends parent structures into a soft, modified wedge head shape with expressive aquamarine eyes."
+    },
+    {
+      "id": "chartreux",
+      "name": "Chartreux",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.25964,
+        "eye_width_ratio": 0.19965,
+        "eye_tilt": -0.06714,
+        "nose_width_ratio": 0.1968,
+        "nose_length_ratio": 0.19998,
+        "mouth_width_ratio": 0.4799,
+        "jaw_width_ratio": 0.94518,
+        "jaw_angle": 148.2179,
+        "face_width_to_height": 1.06274,
+        "face_contour_taper": 0.9687
+      },
+      "notes": "Features a tapered muzzle with dense cheek pads that give the impression of a wide, pleasant smile."
+    },
+    {
+      "id": "birman",
+      "name": "Birman",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.25786,
+        "eye_width_ratio": 0.201,
+        "eye_tilt": -0.87097,
+        "nose_width_ratio": 0.1918,
+        "nose_length_ratio": 0.20542,
+        "mouth_width_ratio": 0.42435,
+        "jaw_width_ratio": 0.91238,
+        "jaw_angle": 143.0561,
+        "face_width_to_height": 0.93186,
+        "face_contour_taper": 1.003
+      },
+      "notes": "Maintains a soft, moderately heavy facial structure with well-spaced eyes and gently rounded cheeks."
+    },
+    {
+      "id": "egyptian_mau",
+      "name": "Egyptian Mau",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.25252,
+        "eye_width_ratio": 0.2091,
+        "eye_tilt": 8.77499,
+        "nose_width_ratio": 0.1868,
+        "nose_length_ratio": 0.2299,
+        "mouth_width_ratio": 0.389,
+        "jaw_width_ratio": 0.88614,
+        "jaw_angle": 131.0119,
+        "face_width_to_height": 0.81734,
+        "face_contour_taper": 1.052
+      },
+      "notes": "Features large, alert gooseberry-green eyes set at a unique slant within a slightly rounded wedge profile."
+    },
+    {
+      "id": "cornish_rex",
+      "name": "Cornish Rex",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.265,
+        "eye_width_ratio": 0.21315,
+        "eye_tilt": 12.79414,
+        "nose_width_ratio": 0.1718,
+        "nose_length_ratio": 0.22718,
+        "mouth_width_ratio": 0.3486,
+        "jaw_width_ratio": 0.84022,
+        "jaw_angle": 118.9677,
+        "face_width_to_height": 0.68646,
+        "face_contour_taper": 1.1157
+      },
+      "notes": "Characterized by an oval skull outline, highly arched cheekbones, a narrow muzzle, and large slanted eyes."
+    },
+    {
+      "id": "manx",
+      "name": "Manx",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.25964,
+        "eye_width_ratio": 0.1983,
+        "eye_tilt": 0.73669,
+        "nose_width_ratio": 0.1943,
+        "nose_length_ratio": 0.2027,
+        "mouth_width_ratio": 0.43445,
+        "jaw_width_ratio": 0.93206,
+        "jaw_angle": 149.0782,
+        "face_width_to_height": 1.04638,
+        "face_contour_taper": 0.9785
+      },
+      "notes": "Displays a broad, heavy-jowled appearance with a round head and a strong, well-developed muzzle."
+    },
+    {
+      "id": "savannah",
+      "name": "Savannah",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.22582,
+        "eye_width_ratio": 0.2037,
+        "eye_tilt": 9.57882,
+        "nose_width_ratio": 0.1993,
+        "nose_length_ratio": 0.2571,
+        "mouth_width_ratio": 0.3789,
+        "jaw_width_ratio": 0.86974,
+        "jaw_angle": 126.7104,
+        "face_width_to_height": 0.5883,
+        "face_contour_taper": 1.0716
+      },
+      "notes": "Presents a striking, highly elongated wild face with an extended nose bridge and closely set, high-set eyes."
+    },
+    {
+      "id": "balinese",
+      "name": "Balinese",
+      "species": "cat",
+      "features": {
+        "eye_spacing_ratio": 0.22048,
+        "eye_width_ratio": 0.20235,
+        "eye_tilt": 13.59797,
+        "nose_width_ratio": 0.17055,
+        "nose_length_ratio": 0.25166,
+        "mouth_width_ratio": 0.3486,
+        "jaw_width_ratio": 0.83694,
+        "jaw_angle": 119.828,
+        "face_width_to_height": 0.5883,
+        "face_contour_taper": 1.1059
+      },
+      "notes": "Carries an elegant, long wedge head profile paired with highly angled, widely set almond eyes."
     }
-  ],
-  "version": "1.5.0",
-  "notes": " v1.5.0: reset inflated z-scores (Maine Coon, Abyssinian, Golden, Labrador) for Path B distance scoring compatibility. Switched from winner-take-most (Path A) to weighted Euclidean distance (Path B)."
+  ]
 }
