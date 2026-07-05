@@ -300,10 +300,10 @@ const PET_DATASET = [
     features: { eye_spacing_ratio: 0.2596, eye_width_ratio: 0.1943, eye_tilt: -0.871, nose_width_ratio: 0.1943, nose_length_ratio: 0.1565, mouth_width_ratio: 0.4193, jaw_width_ratio: 0.9025, jaw_angle: 145.17, face_width_to_height: 0.9973, face_contour_taper: 0.9981 },
     notes: "Primary signature: shortest nose_length_ratio in the dataset (uncontested) — brachycephalic flat-face archetype. Secondary: moderately wide/round face, wide-set eyes." },
   { id: "labrador_retriever", name: "Labrador Retriever", species: "dog",
-    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1875, eye_tilt: -0.0671, nose_width_ratio: 0.1918, nose_length_ratio: 0.2217, mouth_width_ratio: 0.4446, jaw_width_ratio: 0.9958, jaw_angle: 141.01, face_width_to_height: 0.801, face_contour_taper: 1.0177 },
+    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1875, eye_tilt: -0.0671, nose_width_ratio: 0.1918, nose_length_ratio: 0.2217, mouth_width_ratio: 0.4446, jaw_width_ratio: 0.9681, jaw_angle: 141.01, face_width_to_height: 0.801, face_contour_taper: 1.0177 },
     notes: "Primary signature: widest jaw_width_ratio in the dataset (uncontested) — sturdy, friendly broad-jaw archetype. Magnitude calibrated higher than other primaries to compensate for jaw_width's lower scoring importance weight. Secondary: warm wide mouth." },
   { id: "golden_retriever", name: "Golden Retriever", species: "dog",
-    features: { eye_spacing_ratio: 0.2436, eye_width_ratio: 0.1889, eye_tilt: 3.1482, nose_width_ratio: 0.188, nose_length_ratio: 0.2326, mouth_width_ratio: 0.6314, jaw_width_ratio: 0.8894, jaw_angle: 136.76, face_width_to_height: 0.801, face_contour_taper: 1.0226 },
+    features: { eye_spacing_ratio: 0.2436, eye_width_ratio: 0.1889, eye_tilt: 3.1482, nose_width_ratio: 0.188, nose_length_ratio: 0.2326, mouth_width_ratio: 0.5254, jaw_width_ratio: 0.8894, jaw_angle: 136.76, face_width_to_height: 0.801, face_contour_taper: 1.0226 },
     notes: "Primary signature: widest mouth_width_ratio in the dataset (uncontested) — warm, friendly wide-mouth archetype. Magnitude calibrated higher than other primaries to compensate for mouth_width's lower scoring importance weight. Secondary: kind upward eye tilt, longer snout." },
   { id: "german_shepherd", name: "German Shepherd", species: "dog",
     features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1875, eye_tilt: 3.952, nose_width_ratio: 0.1868, nose_length_ratio: 0.2381, mouth_width_ratio: 0.4092, jaw_width_ratio: 0.8861, jaw_angle: 112.16, face_width_to_height: 0.4738, face_contour_taper: 1.0275 },
@@ -312,7 +312,7 @@ const PET_DATASET = [
     features: { eye_spacing_ratio: 0.2472, eye_width_ratio: 0.1915, eye_tilt: -0.0671, nose_width_ratio: 0.1855, nose_length_ratio: 0.2761, mouth_width_ratio: 0.3991, jaw_width_ratio: 0.8763, jaw_angle: 128.64, face_width_to_height: 0.6701, face_contour_taper: 1.0275 },
     notes: "Primary signature: longest nose_length_ratio in the dataset (uncontested) — elongated snout archetype. Secondary: narrow face, slightly narrow jaw." },
   { id: "maine_coon", name: "Maine Coon", species: "cat",
-    features: { eye_spacing_ratio: 0.249, eye_width_ratio: 0.278, eye_tilt: 0.7367, nose_width_ratio: 0.1893, nose_length_ratio: 0.2136, mouth_width_ratio: 0.4042, jaw_width_ratio: 0.9124, jaw_angle: 142.65, face_width_to_height: 0.9155, face_contour_taper: 1.0226 },
+    features: { eye_spacing_ratio: 0.249, eye_width_ratio: 0.2213, eye_tilt: 0.7367, nose_width_ratio: 0.1893, nose_length_ratio: 0.2136, mouth_width_ratio: 0.4042, jaw_width_ratio: 0.9124, jaw_angle: 142.65, face_width_to_height: 0.9155, face_contour_taper: 1.0226 },
     notes: "Primary signature: largest eye_width_ratio in the dataset (uncontested) — large expressive-eyed archetype. Magnitude calibrated higher than other primaries to compensate for eye_width's lower scoring importance weight. Secondary: broad jaw, moderately round face." },
   { id: "ragdoll", name: "Ragdoll", species: "cat",
     features: { eye_spacing_ratio: 0.2507, eye_width_ratio: 0.1983, eye_tilt: -21.324, nose_width_ratio: 0.1868, nose_length_ratio: 0.2081, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8993, jaw_angle: 140.84, face_width_to_height: 0.8828, face_contour_taper: 1.003 },
@@ -324,7 +324,7 @@ const PET_DATASET = [
     features: { eye_spacing_ratio: 0.249, eye_width_ratio: 0.1983, eye_tilt: 17.9744, nose_width_ratio: 0.1855, nose_length_ratio: 0.2081, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8829, jaw_angle: 139.48, face_width_to_height: 0.8664, face_contour_taper: 1.0618 },
     notes: "Primary signature: most upward eye_tilt in the dataset (uncontested) — distinctive elfin upturned-eye archetype. Secondary: dramatic forehead-to-jaw taper, large eyes." },
   { id: "abyssinian", name: "Abyssinian", species: "cat",
-    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1902, eye_tilt: 3.1482, nose_width_ratio: 0.1343, nose_length_ratio: 0.2163, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8763, jaw_angle: 136.17, face_width_to_height: 0.801, face_contour_taper: 1.0275 },
+    features: { eye_spacing_ratio: 0.2418, eye_width_ratio: 0.1902, eye_tilt: 3.1482, nose_width_ratio: 0.1605, nose_length_ratio: 0.2163, mouth_width_ratio: 0.3941, jaw_width_ratio: 0.8763, jaw_angle: 136.17, face_width_to_height: 0.801, face_contour_taper: 1.0275 },
     notes: "Primary signature: narrowest nose_width_ratio in the dataset (uncontested) — refined, fine-boned archetype. Magnitude calibrated higher than other primaries to compensate for nose_width's lower scoring importance weight. Secondary: alert eye tilt, narrow jaw." },
 ];
 
@@ -355,15 +355,27 @@ const IMPORTANCE = {
   jaw_angle: 0.6, nose_width_ratio: 0.5, mouth_width_ratio: 0.5, eye_width_ratio: 0.4,
 };
 
-function caricatureScore(rawRatios, breeds) {
+// ── Distance scoring engine (Path B) ────────────────────────────────────────
+// Replaces winner-take-most (Path A). Computes weighted Euclidean distance
+// between the human's z-score vector and each breed's z-score vector.
+// Importance weights scale each axis — features that matter more cost more
+// when misaligned. No manually assigned "primary axes" needed, so the roster
+// can expand to 50+ breeds without running out of uncontested signature slots.
+//
+// Score formula: 100 * exp(-distSq / 10)
+//   distSq=0 → 100%, distSq=2 → 82%, distSq=5 → 61%, distSq=10 → 37%
+function distanceScore(rawRatios, breeds) {
   const R = Object.assign({}, rawRatios);
   if (R.eye_tilt != null) {
     if (R.eye_tilt > 90) R.eye_tilt -= 180;
     if (R.eye_tilt < -90) R.eye_tilt += 180;
   }
 
+  const FEATURES = Object.keys(IMPORTANCE);
+
+  // Human z-scores
   const HZ = {};
-  for (const feat of Object.keys(IMPORTANCE)) {
+  for (const feat of FEATURES) {
     const v = R[feat];
     if (v == null || !HUMAN_SD[feat]) continue;
     HZ[feat] = (v - HUMAN_AVG[feat]) / HUMAN_SD[feat];
@@ -371,47 +383,51 @@ function caricatureScore(rawRatios, breeds) {
 
   const results = breeds.map(breed => {
     const pf = {};
-    for (const feat of Object.keys(IMPORTANCE)) {
+    let distSq = 0;
+
+    for (const feat of FEATURES) {
       const hZ = HZ[feat];
       const bRaw = breed.features[feat];
       if (hZ == null || bRaw == null || !HUMAN_SD[feat]) continue;
       const bZ = (bRaw - HUMAN_AVG[feat]) / HUMAN_SD[feat];
-      const aligned = Math.sign(hZ) === Math.sign(bZ);
-      const signal = (aligned ? 1 : -1) * Math.abs(hZ) * Math.abs(bZ);
+      const diff = hZ - bZ;
+      const w = IMPORTANCE[feat];
+      const contribution = w * diff * diff;
+      distSq += contribution;
+
       pf[feat] = {
         human_raw: R[feat], breed_raw: bRaw,
-        human_z: Math.round(hZ * 10) / 10, breed_z: Math.round(bZ * 10) / 10,
-        aligned, signal: Math.round(signal * 100) / 100, importance: IMPORTANCE[feat],
+        human_z: Math.round(hZ * 10) / 10,
+        breed_z: Math.round(bZ * 10) / 10,
+        aligned: Math.sign(hZ) === Math.sign(bZ),
+        diff: Math.round(diff * 100) / 100,
+        contribution: Math.round(contribution * 100) / 100,
+        importance: w,
       };
     }
 
-    const active = Object.entries(pf)
-      .filter(([, v]) => Math.abs(v.human_z) >= 0.5)
-      .sort((a, b) => Math.abs(b[1].signal) - Math.abs(a[1].signal));
+    const score = Math.round(Math.max(0, Math.min(100, 100 * Math.exp(-distSq / 10))));
 
-    let score = 50;
-    if (active.length > 0) {
-      const [, top] = active[0];
-      const rest = active.slice(1);
-      const winnerContrib = top.signal * top.importance;
-      let restScore = 0, restWeight = 0;
-      for (const [, v] of rest) { restScore += v.signal * v.importance; restWeight += v.importance; }
-      const restContrib = restWeight > 0 ? restScore / restWeight : 0;
-      const combined = winnerContrib * 0.5 + restContrib * 0.5;
-      score = Math.round(Math.max(0, Math.min(100, 50 + combined * 18)));
-    }
+    // Matching: human is distinctive on this axis AND close to breed AND same direction
+    const matching = Object.entries(pf)
+      .filter(([, v]) => Math.abs(v.human_z) >= 0.5 && v.aligned && Math.abs(v.diff) < 2.0)
+      .sort((a, b) => Math.abs(b[1].human_z) * Math.abs(b[1].breed_z) - Math.abs(a[1].human_z) * Math.abs(a[1].breed_z))
+      .slice(0, 3).map(([f]) => f);
 
-    const matching = active.filter(([, v]) => v.aligned).slice(0, 3).map(([f]) => f);
-    const diverging = active.filter(([, v]) => !v.aligned).slice(0, 2).map(([f]) => f);
+    // Diverging: human is distinctive but opposite direction to breed
+    const diverging = Object.entries(pf)
+      .filter(([, v]) => Math.abs(v.human_z) >= 0.5 && !v.aligned)
+      .sort((a, b) => b[1].contribution - a[1].contribution)
+      .slice(0, 2).map(([f]) => f);
 
-    return { id: breed.id, name: breed.name, species: breed.species, score, matching, diverging, pf, notes: breed.notes || "" };
+    return { id: breed.id, name: breed.name, species: breed.species, score, distSq: Math.round(distSq * 100) / 100, matching, diverging, pf, notes: breed.notes || "" };
   });
 
   return results.sort((a, b) => b.score - a.score);
 }
 
 function buildPrompt(rawRatios, breeds) {
-  const ranked = caricatureScore(rawRatios, breeds);
+  const ranked = distanceScore(rawRatios, breeds);
   const top = ranked[0];
   const rest = ranked.slice(1);
   const shown = rest.slice(0, 2); // only #2 and #3 are ever displayed — Phase 1 caps results at top 3
@@ -730,7 +746,7 @@ document.getElementById("match-btn").addEventListener("click", async () => {
   setMatchStatus("Computing caricature scores…", "running");
 
   let ranked;
-  try { ranked = caricatureScore(currentRatios, PET_DATASET); }
+  try { ranked = distanceScore(currentRatios, PET_DATASET); }
   catch (e) { setMatchStatus("Scoring error: " + e.message, "error"); btn.disabled = false; return; }
 
   // Deterministic visuals render immediately — no need to wait on the API.

@@ -47,7 +47,7 @@
         "nose_width_ratio": 0.1918,
         "nose_length_ratio": 0.2217,
         "mouth_width_ratio": 0.4446,
-        "jaw_width_ratio": 0.9958,
+        "jaw_width_ratio": 0.9681,
         "jaw_angle": 141.01,
         "face_width_to_height": 0.801,
         "face_contour_taper": 1.0177
@@ -67,7 +67,7 @@
         "eye_tilt": 3.1482,
         "nose_width_ratio": 0.188,
         "nose_length_ratio": 0.2326,
-        "mouth_width_ratio": 0.6314,
+        "mouth_width_ratio": 0.5254,
         "jaw_width_ratio": 0.8894,
         "jaw_angle": 136.76,
         "face_width_to_height": 0.801,
@@ -126,7 +126,7 @@
       "species": "cat",
       "features": {
         "eye_spacing_ratio": 0.249,
-        "eye_width_ratio": 0.278,
+        "eye_width_ratio": 0.2213,
         "eye_tilt": 0.7367,
         "nose_width_ratio": 0.1893,
         "nose_length_ratio": 0.2136,
@@ -212,7 +212,7 @@
         "eye_spacing_ratio": 0.2418,
         "eye_width_ratio": 0.1902,
         "eye_tilt": 3.1482,
-        "nose_width_ratio": 0.1343,
+        "nose_width_ratio": 0.1605,
         "nose_length_ratio": 0.2163,
         "mouth_width_ratio": 0.3941,
         "jaw_width_ratio": 0.8763,
@@ -226,5 +226,6 @@
       "notes": "Primary signature: narrowest nose_width_ratio in the dataset (uncontested) \u2014 refined, fine-boned archetype. Magnitude calibrated higher than other primaries to compensate for nose_width's lower scoring importance weight. Secondary: alert eye tilt, narrow jaw."
     }
   ],
-  "version": "1.4.0"
+  "version": "1.5.0",
+  "notes": " v1.5.0: reset inflated z-scores (Maine Coon, Abyssinian, Golden, Labrador) for Path B distance scoring compatibility. Switched from winner-take-most (Path A) to weighted Euclidean distance (Path B)."
 }
