@@ -455,8 +455,19 @@ const PET_DATASET = [
 const BREED_VARIANT_COUNT = 6;
 // Breeds with portraits in images/ folder
 const BREEDS_WITH_PORTRAITS = new Set([
-  "french_bulldog","labrador_retriever","golden_retriever","german_shepherd",
-  "dachshund","maine_coon","ragdoll","exotic_shorthair","devon_rex","abyssinian"
+"abyssinian", "australian_shepherd", "balinese", "beagle",
+  "bengal", "birman", "border_collie", "boxer",
+  "british_shorthair", "bulldog_english", "burmese", "chartreux",
+  "chihuahua", "chow_chow", "cocker_spaniel", "cornish_rex",
+  "dachshund", "dalmatian", "devon_rex", "doberman_pinscher",
+  "egyptian_mau", "exotic_shorthair", "french_bulldog", "german_shepherd",
+  "golden_retriever", "great_dane", "greyhound", "himalayan",
+  "labrador_retriever", "maine_coon", "maltese", "manx",
+  "norwegian_forest_cat", "oriental_shorthair", "persian", "pomeranian",
+  "poodle_standard", "ragdoll", "rottweiler", "russian_blue",
+  "savannah", "scottish_fold", "shar_pei", "shih_tzu",
+  "siamese", "siberian_husky", "sphynx", "tonkinese",
+  "turkish_angora", "weimaraner",
 ]);
 function breedImageUrl(breedId) {
   if (!BREEDS_WITH_PORTRAITS.has(breedId)) return null;
